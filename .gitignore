@@ -1,0 +1,9 @@
+*.pyc
+/.bash_history
+/.bashrc
+/.bash_logout
+/.profile
+/var
+/repos
+/fixacl
+/git.komodoproject
