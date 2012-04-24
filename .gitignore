@@ -7,3 +7,5 @@
 /repos
 /fixacl
 /git.komodoproject
+/db.sqlite
+/.ipython

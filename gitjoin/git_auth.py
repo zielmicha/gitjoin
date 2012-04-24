@@ -4,6 +4,7 @@ import sys
 import os
 import shlex
 import subprocess
+import urllib
 
 import tools
 
@@ -27,7 +28,7 @@ def invoke_command(cmd, repo):
     except PermissionDenied as err:
         sys.exit('Cannot access repository %s: %s' % (repo, err.message))
     
-    with tools.lock('repo_' + path):
+    with tools.global_lock(), tools.lock('repo_' + path):
         status = subprocess.call((cmd, path))
     
     sys.exit(status)
