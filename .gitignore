@@ -11,4 +11,4 @@
 /.ipython
 /.ssh
 /authorized_keys.custom
-/config
+/config.py

@@ -1,7 +1,6 @@
 import fcntl
 import urllib
 import os
-import json
 import tempfile
 
 class lock(object):
@@ -22,7 +21,8 @@ def global_lock(shared=True):
     return lock('global', shared=shared)
 
 def get_conf(name):
-    config = json.load(open(os.path.expanduser('~/config')))
+    config = {}
+    execfile(os.path.expanduser('~/config.py'), config)
     return config[name]
 
 def overwrite_file(path, data):

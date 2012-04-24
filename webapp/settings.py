@@ -157,3 +157,5 @@ LOGGING = {
         },
     }
 }
+
+execfile(os.path.expanduser('~/config.py'))
