@@ -18,26 +18,42 @@ def main():
         if len(args_split) != 1:
             sys.exit('Unexpected number of arguments: %s' % len(args_split))
         repo = args_split[0]
-        invoke_command(cmd, repo)
+        invoke_command(username, cmd, repo)
     else:
         sys.exit('Expected git-upload-pack or git-receive-pack, got %s instead.' % (cmd or 'nothing'))
 
-def invoke_command(cmd, repo):
+def invoke_command(username, cmd, repo):
     try:
-        path = get_path(cmd, repo)
+        path = get_path(username, cmd, repo)
     except PermissionDenied as err:
         sys.exit('Cannot access repository %s: %s' % (repo, err.message))
     
     with tools.global_lock(), tools.lock('repo_' + path):
+        if not os.path.exists(path + '/HEAD'):
+            git_init(path)
+        
         status = subprocess.call((cmd, path))
     
     sys.exit(status)
 
-def get_path(cmd, repo):
-    if repo == 'i-dont-like-you':
-        raise PermissionDenied('I don\'t like you.')
+def get_path(username, cmd, repo):
+    result = urllib.urlopen(tools.get_conf('url') + '/gitauth?' + urllib.urlencode(dict(repo=repo, user=username))).read()
+    status, msg = result.split(':', 1)
+    msg = msg.strip()
+    if status == 'ok':
+        ident = int(msg)
+        return os.path.expanduser('~/repos/%d' % ident)
     else:
-        return os.path.expanduser('~/repos/' + repo)
+        raise PermissionDenied(msg)
+
+def git_init(path):
+    if not os.path.exists(path):
+        os.mkdir(path)
+    os.chdir(path)
+    print >>sys.stderr, 'Initializing new Git repository...'
+    status = subprocess.call(('git', 'init', '--bare'), stdout=sys.stderr)
+    if status != 0:
+        sys.exit('Initialization failed.')
 
 class PermissionDenied(Exception): pass
 

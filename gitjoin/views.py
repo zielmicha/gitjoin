@@ -3,25 +3,21 @@ import django.core.exceptions
 import models
 
 def gitauth(request):
-    user = request.GET.get('user')
-    repofull = request.GET.get('repo')
-    
-    holder, reponame = repofull.split('/')
+    user_name = request.GET.get('user')
+    repo_name = request.GET.get('repo')
     
     try:
-        repo = models.Repo.objects.filter(name=reponame, holder__name=holder).get()
+        user = models.User.objects.filter(username=user_name).get()
     except django.core.exceptions.ObjectDoesNotExist as err:
-        return http.HttpResponse('error: no repo')
+        return http.HttpResponse('error: no such user')
     
     try:
-        user = models.User.objects.filter(username=user).get()
-    except django.core.exceptions.ObjectDoesNotExist as err:
-        return http.HttpResponse('error: no user')
+        repo = models.Repo.get_by_name(repo_name)
+    except Exception as err:
+        return http.HttpResponse('error: ' + err.message)
     
-    try:
-        ok = user.repos.filter(id=repo.id).get()
-    except django.core.exceptions.ObjectDoesNotExist as err:
-        return http.HttpResponse('error: not auth')
+    if not repo.is_user_authorized(user):
+        return http.HttpResponse('error: not authorized')
     
     return http.HttpResponse('ok: %d' % repo.id)
     
