@@ -1,0 +1,9 @@
+{% extends "repobase.html" %}
+{% block repocontent %}
+hello world!
+<ul>
+{% for entry in git_list %}
+<li>{{entry.name}} {{entry.path}}
+{% endfor %}
+</ul>
+{% endblock %}

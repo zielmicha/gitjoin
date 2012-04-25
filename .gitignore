@@ -1,4 +1,5 @@
 *.pyc
+*~
 /.bash_history
 /.bashrc
 /.bash_logout
@@ -12,3 +13,12 @@
 /.ssh
 /authorized_keys.custom
 /config.py
+.bash_profile
+/.emacs
+/.emacs.d/
+/.ido.last
+/.lesshst
+/.nethackrc
+/wsgi.py
+/apps
+/auth.pub

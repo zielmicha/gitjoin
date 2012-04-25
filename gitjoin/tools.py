@@ -2,6 +2,7 @@ import fcntl
 import urllib
 import os
 import tempfile
+import functools
 
 class lock(object):
     ' exclusive by default '
@@ -50,3 +51,10 @@ def reformat_ssh_key(data):
     author = urllib.quote(author.strip())
     
     return '%s %s %s' % (type, data, author)
+
+def reusable_generator(method):
+    def decorator(*args, **kwargs):
+        return list(method(*args, **kwargs))
+    
+    functools.update_wrapper(decorator, method)
+    return decorator

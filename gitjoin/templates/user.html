@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ object.username }}</h1>
+<h2>Repositories</h2>
+
+<ul>
+{% for repo in repos %}
+   <li><a href="{% url repo object.username repo.name %}">{{ repo.name }}</a>
+{% endfor %}
+</ul>
+
+{% endblock %}

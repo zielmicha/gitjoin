@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}{% endblock %} | Gitjoin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ STATIC_URL }}/bootstrap/css/bootstrap.min.css">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+      .footer {
+        margin-top: 45px;
+        padding: 35px 0 36px;
+        border-top: 1px solid #E5E5E5;
+      }
+    </style>
+    <link rel="stylesheet" href="{{ STATIC_URL }}/bootstrap/css/bootstrap-responsive.min.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}/bootstrap/css/prettify.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}/file-input/css/enhanced.css">
+    {% block css %}{% endblock %}
+    </head>
+  <body onload="prettyPrint()" class="no_tex">
+{% if not is_popup %}
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="/">Gitjoin</a>
+          <div class="nav-collapse">
+            {% if user.is_authenticated %}
+            <ul class="nav">
+              {% if contest %}
+              <li><a href="#">Wiadomo?ci</a></li>
+              {% endif %}
+            </ul>
+            <ul class="nav pull-right">
+              <li class="divider-vertical"></li>
+              {% load url from future %}
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                  {{ user.get_full_name }}
+                  <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                  {% if user.is_staff %}
+                  <li><a href="/admin"><i class="icon-star"></i> Panel administracyjny</a></li>
+                  <li class="divider"></li>
+                  {% endif %}
+                  <li><a href="#"><i class="icon-user"></i> Ustawienia konta</a></li>
+                  <li class="divider"></li>
+                  <li><a href="{% url 'django.contrib.auth.views.logout' %}"><i class="icon-off"></i> Wyloguj si?</a></li>
+                </ul>
+              </li>
+             </ul>
+            {% else %}
+            <ul class="nav pull-right">
+              <li><a href="{% url 'django.contrib.auth.views.login' %}" id="login">Zaloguj si?</a></li>
+            </ul>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+{% endif %}
+    <div class="container">
+      {% block content %}{% endblock %}
+{% if not is_popup %}
+      <footer class="footer">
+        <p>
+          &copy; Copyright 2012 by
+                    <a href="http://zielm.com">Michal Zielinski</a>.
+        </p>
+      </footer>
+{% endif %}
+    </div>
+  </body>
+  <script src="{{ STATIC_URL }}js/google-prettify/prettify.js"></script>
+  <script src="{{ STATIC_URL }}js/jquery.js"></script>
+  <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+  <script src="{{ STATIC_URL }}js/bootstrap-popover.js"></script>
+  <script src="{{ STATIC_URL }}js/bootstrap-scrollspy.js"></script>
+  <script src="{{ STATIC_URL }}/file-input/js/enhance.min.js"></script>
+  <script src="{{ STATIC_URL }}/file-input/js/fileinput.jquery.js"></script>
+  <script src="{{ STATIC_URL }}js/lemur.js"></script>
+</html>
+ 
