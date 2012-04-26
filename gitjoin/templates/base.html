@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}/bootstrap/css/bootstrap-responsive.min.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}/bootstrap/css/prettify.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}/file-input/css/enhanced.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}/git.css">
     {% block css %}{% endblock %}
     </head>
   <body onload="prettyPrint()" class="no_tex">
@@ -36,7 +37,7 @@
             {% if user.is_authenticated %}
             <ul class="nav">
               {% if contest %}
-              <li><a href="#">Wiadomo?ci</a></li>
+              <li><a href="#">Wiadomości</a></li>
               {% endif %}
             </ul>
             <ul class="nav pull-right">
@@ -54,13 +55,13 @@
                   {% endif %}
                   <li><a href="#"><i class="icon-user"></i> Ustawienia konta</a></li>
                   <li class="divider"></li>
-                  <li><a href="{% url 'django.contrib.auth.views.logout' %}"><i class="icon-off"></i> Wyloguj si?</a></li>
+                  <li><a href="{% url 'django.contrib.auth.views.logout' %}"><i class="icon-off"></i> Wyloguj się</a></li>
                 </ul>
               </li>
              </ul>
             {% else %}
             <ul class="nav pull-right">
-              <li><a href="{% url 'django.contrib.auth.views.login' %}" id="login">Zaloguj si?</a></li>
+              <li><a href="{% url 'django.contrib.auth.views.login' %}" id="login">Zaloguj się</a></li>
             </ul>
             {% endif %}
           </div>
@@ -74,19 +75,18 @@
       <footer class="footer">
         <p>
           &copy; Copyright 2012 by
-                    <a href="http://zielm.com">Michal Zielinski</a>.
+                    <a href="http://zielm.com">Michał Zieliński</a>.
         </p>
       </footer>
 {% endif %}
     </div>
   </body>
-  <script src="{{ STATIC_URL }}js/google-prettify/prettify.js"></script>
-  <script src="{{ STATIC_URL }}js/jquery.js"></script>
-  <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
-  <script src="{{ STATIC_URL }}js/bootstrap-popover.js"></script>
-  <script src="{{ STATIC_URL }}js/bootstrap-scrollspy.js"></script>
+  <script src="{{ STATIC_URL }}/bootstrap/js/google-prettify/prettify.js"></script>
+  <script src="{{ STATIC_URL }}/bootstrap/js/jquery.js"></script>
+  <script src="{{ STATIC_URL }}/bootstrap/js/bootstrap.min.js"></script>
+  <script src="{{ STATIC_URL }}/bootstrap/js/bootstrap-popover.js"></script>
+  <script src="{{ STATIC_URL }}/bootstrap/js/bootstrap-scrollspy.js"></script>
   <script src="{{ STATIC_URL }}/file-input/js/enhance.min.js"></script>
   <script src="{{ STATIC_URL }}/file-input/js/fileinput.jquery.js"></script>
-  <script src="{{ STATIC_URL }}js/lemur.js"></script>
 </html>
  

@@ -62,7 +62,9 @@ class RepoAlias(models.Model):
         verbose_name_plural = "repository aliases"
 
 class PrivilegeOwner(models.Model):
-    repos = models.ManyToManyField(Repo, related_name='privilegated')
+    ro_repos = models.ManyToManyField(Repo, related_name='ro_privilegated')
+    rw_repos = models.ManyToManyField(Repo, related_name='rw_privilegated')
+    rwplus_repos = models.ManyToManyField(Repo, related_name='rwplus_privilegated')
     
     class Meta:
         verbose_name = "privilige owner"

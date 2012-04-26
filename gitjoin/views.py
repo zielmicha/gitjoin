@@ -4,6 +4,7 @@ from django.views.generic.simple import direct_to_template
 import django.core.exceptions
 import models
 import git
+import tools
 
 def gitauth(request):
     user_name = request.GET.get('user')
@@ -34,8 +35,31 @@ def repo(request, username, name):
     grepo = git.Repo.from_model(repo)
     return direct_to_template(request, 'repo.html', dict(
             repo=repo,
-            git_list=grepo.list(),
-            readme='README should be here!'))
+            branch='master', #repo.default_branch,
+            git_list=tools.none_on_error(grepo.list, errors=[KeyError]),
+            path='/',
+            readme=grepo.get_readme()))
 
+def repo_tree(request, username, repo_name, branch, path):
+    repo = models.Repo.get_by_name(username + '/' + repo_name)
+    grepo = git.Repo.from_model(repo)
+    object = grepo.get_branch(branch).get_tree(path)
 
-    
+    if object.is_directory():
+        return direct_to_template(request, 'repo_tree.html', dict(
+            branch=branch,
+            repo=repo,
+            path=path,
+            git_list=object.list()))
+    else:
+        return direct_to_template(request, 'repo_blob.html', dict(
+            branch=branch,
+            repo=repo,
+            path=path,
+            git_blob=object.get_data()))
+
+def repo_admin(request, username, repo_name):
+    repo = models.Repo.get_by_name(username + '/' + repo_name)
+    return direct_to_template(request, 'repo_admin.html', dict(
+        repo=repo))
+

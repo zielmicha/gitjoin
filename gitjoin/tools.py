@@ -58,3 +58,12 @@ def reusable_generator(method):
     
     functools.update_wrapper(decorator, method)
     return decorator
+
+def none_on_error(func, errors=None, none_value=None, *args, **kwargs):
+    try:
+        return func(*args, **kwargs)
+    except Exception as err:
+        if errors:
+            if not isinstance(err, tuple(errors)):
+                raise
+        return None

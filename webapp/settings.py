@@ -97,8 +97,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    # Uncomment the next line for simple clickjacking protection:
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_cas.middleware.CASMiddleware',
+    'django.middleware.doc.XViewMiddleware',
 )
 
 ROOT_URLCONF = 'webapp.urls'
@@ -125,9 +126,10 @@ INSTALLED_APPS = (
 
 AUTHENTICATION_BACKENDS = (
     #'django.contrib.auth.backends.ModelBackend',
-    'gitjoin.auth_backend.PAMBackend',
+    'gitjoin.auth_backend.CASBackend',
     # albo 'webapp.auth_backend.PAMBackend'
 )
+CAS_SERVER_URL = 'https://webauth.v-lo.krakow.pl/'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

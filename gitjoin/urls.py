@@ -16,6 +16,8 @@ urlpatterns = patterns('',
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),
 
-    url(r'^([^/]+)/([^/]+)', views.repo, name='repo'),
+    url(r'^([^/]+)/([^/]+)/tree/([^/]+)/(.*)$', views.repo_tree, name='repo_tree'),
+    url(r'^([^/]+)/([^/]+)/admin$', views.repo_admin, name='repo_admin'),
+    url(r'^([^/]+)/([^/]+)$', views.repo, name='repo'),
     url(r'^([^/]+)/?$', views.user, name='user'),
 )

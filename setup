@@ -1,0 +1,27 @@
+#!/bin/bash
+function installgit() {
+	mv ~/.ssh/authorized_keys ~/authorized_keys.custom 2>/dev/null
+	mkdir ~/.ssh 2>/dev/null
+	mkdir ~/var ~/var/tmp ~/var/locks || exit 1
+	cp -a gitjoin/ webapp/ *.py ~ || exit 1
+	touch ~/config.py || exit 1
+	echo Ok. Now edit $HOME/config.py
+}
+
+if [ "$(whoami)" = root ]; then
+	useradd git
+	mkdir ~git 2>/dev/null
+	chown git ~git || exit
+	su git -c "bash $0"
+else
+	printf "Overwrite %s? (uppercase yes/no): " "$HOME"
+	read yesorno
+
+	if [ "$yesorno" = YES ]; then
+		echo "Installing..."
+		installgit
+	else
+		echo Cancel.
+		exit 1
+	fi
+fi

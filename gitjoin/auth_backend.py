@@ -67,7 +67,7 @@ class PAMBackend(VLOBackend):
         if pam.authenticate(username, password):
             return username
 
-#from django_cas.backends import _verify as cas_verify
+from django_cas.backends import _verify as cas_verify
 
 class CASBackend(VLOBackend):
     def check_auth(self, ticket, service):
