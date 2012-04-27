@@ -24,11 +24,22 @@ class Repo(object):
         except KeyError:
             return ''
 
-    def get_ref(self, path):
-        return Commit(self.repo, self.repo.lookup_reference(path))
+    def get_ref(self, name):
+        obj = self.repo.lookup_reference(name)
+        return Commit(self.repo, obj)
+
+    def get_commit(self, ident):
+        try:
+            ident = ident.decode('hex')
+        except ValueError as err:
+            raise KeyError(err)
+        return Commit(self.repo, self.repo[ident])
 
     def get_branch(self, name):
-        return self.get_ref('refs/heads/' + name)
+        try:
+            return self.get_commit(name)
+        except KeyError:
+            return self.get_ref('refs/heads/' + name)
 
     def get_head(self):
         return self.get_ref('HEAD')
@@ -36,7 +47,7 @@ class Repo(object):
 class Commit(object):
     def __init__(self, repo, ref):
         self.repo = repo
-        self.obj = self.repo[ref.resolve().oid]
+        self.obj = self.repo[ref.oid]
 
     def list(self, path):
         return self.get_tree(path).list()

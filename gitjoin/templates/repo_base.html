@@ -7,15 +7,21 @@
           <a href="{% url user repo.holder.name %}">{{ repo.holder.name }}</a> /
           <a href="{% url repo repo.holder.name repo.name %}">{{ repo.name }}</a>
         </h3>
-        <h4>
-            {% for fragment in path|splitpath %}
-            / <a href="{% url repo_tree user.name repo.name branch fragment.path %}">{{ fragment.name }}</a>
-            {% endfor %}
-        </h4>
     </div>
     <div class="pull-right">
-        <a href="{% url repo_admin user.name repo.name %}" class="btn"><i class="icon-tag"></i> Admin</a>
+        <button class=btn><i class="icon-share-alt"></i> {{ branch|prettygitident }}</button>
+        <a href="{% url repo_admin user.name repo.name %}" class="btn"><i class="icon-tag"></i> admin</a>
     </div>
+    <ul class="nav nav-tabs">
+        <li><a href="{% url repo repo.holder.name repo.name %}">Tree</a></li>
+        <li><a href="{% url repo_commits repo.holder.name repo.name branch %}">Commits</a></li>
+    </ul>
+    <h4>
+        <a href="{% url repo_tree user.name repo.name branch "" %}">{{ branch|prettygitident }}</a>
+        {% for fragment in path|splitpath %}
+        / <a href="{% url repo_tree user.name repo.name branch fragment.path %}">{{ fragment.name }}</a>
+        {% endfor %}
+    </h4>
 </header>
 {% block repocontent %}{% endblock %}
 {% endblock %}

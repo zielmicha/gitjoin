@@ -17,6 +17,7 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
 
     url(r'^([^/]+)/([^/]+)/tree/([^/]+)/(.*)$', views.repo_tree, name='repo_tree'),
+    url(r'^([^/]+)/([^/]+)/commits/([^/]+)$', views.repo_commits, name='repo_commits'),
     url(r'^([^/]+)/([^/]+)/admin$', views.repo_admin, name='repo_admin'),
     url(r'^([^/]+)/([^/]+)$', views.repo, name='repo'),
     url(r'^([^/]+)/?$', views.user, name='user'),

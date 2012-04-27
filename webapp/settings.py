@@ -1,6 +1,7 @@
 # coding=utf8
 # Django settings for webapp project.
 import os
+import getpass
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -161,3 +162,6 @@ LOGGING = {
 }
 
 execfile(os.path.expanduser('~/config.py'))
+
+if USERNAME != getpass.getuser():
+    print 'WARNING! server run as user %s, configured to be run as %s' % (getpass.getuser(), USERNAME)

@@ -63,3 +63,5 @@ def repo_admin(request, username, repo_name):
     return direct_to_template(request, 'repo_admin.html', dict(
         repo=repo))
 
+def repo_commits(request, username, repo_name, branch):
+    pass

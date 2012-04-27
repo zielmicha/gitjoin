@@ -43,7 +43,7 @@ class Repo(models.Model):
     
     def is_user_authorized(self, user):
         try:
-            ok = user.repos.filter(id=self.id).get()
+            ok = user.ro_repos.filter(id=self.id).get()
         except exceptions.ObjectDoesNotExist as err:
             return False
         
