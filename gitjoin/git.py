@@ -26,12 +26,12 @@ class Repo(object):
 
     def get_ref(self, name):
         obj = self.repo.lookup_reference(name)
-        return Commit(self.repo, obj)
+        return Commit(self.repo, obj.resolve())
 
     def get_commit(self, ident):
         try:
             ident = ident.decode('hex')
-        except ValueError as err:
+        except (ValueError, TypeError) as err:
             raise KeyError(err)
         return Commit(self.repo, self.repo[ident])
 
@@ -58,6 +58,27 @@ class Commit(object):
             if name:
                 tree = self.repo[tree[name].oid]
         return Object(self.repo, path, tree)
+
+    @property
+    def message(self):
+        return self.obj.message
+
+    @property
+    def author(self):
+        return self.obj.author
+
+    @property
+    def commiter(self):
+        return self.obj.commiter
+
+    @property
+    def hex(self):
+        return self.obj.hex
+
+    @tools.reusable_generator
+    def list_commits(self):
+        for obj in self.repo.walk(self.obj.oid, pygit2.GIT_SORT_TIME):
+            yield Commit(self.repo, obj)
 
 class Object(object):
     def __init__(self, repo, path, obj):

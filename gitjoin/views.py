@@ -64,4 +64,12 @@ def repo_admin(request, username, repo_name):
         repo=repo))
 
 def repo_commits(request, username, repo_name, branch):
-    pass
+    repo = models.Repo.get_by_name(username + '/' + repo_name)
+    grepo = git.Repo.from_model(repo)
+    object = grepo.get_branch(branch)
+    return direct_to_template(request, 'repo_commits.html', dict(
+        branch=branch,
+        repo=repo,
+        git_commits=object.list_commits()))
+
+
