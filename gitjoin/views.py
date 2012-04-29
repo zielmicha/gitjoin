@@ -31,7 +31,7 @@ def gitauth(request):
         return http.HttpResponse('error: ' + err.message)
     
     if not repo.is_user_authorized(user, access):
-        return http.HttpResponse('error: not authorized')
+        return http.HttpResponse('error: access denied for user %s' % user.name)
     
     return http.HttpResponse('ok: %d' % repo.id)
 

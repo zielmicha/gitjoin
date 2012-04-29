@@ -21,7 +21,7 @@ fi
 cp -a gitjoin/ webapp/ *.py ~ || exit 1
 touch ~/wsgi.py
 echo Syncing DB...
-~/manage.py syncdb
+~/manage.py syncdb --noinput
 ~/manage.py evolve --noinput --hint -x
 echo Collecting static files...
 ~/manage.py collectstatic --noinput >/dev/null
