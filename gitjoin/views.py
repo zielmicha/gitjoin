@@ -36,8 +36,8 @@ def gitauth(request):
     return http.HttpResponse('ok: %d' % repo.id)
 
 def user(request, name):
-    user = models.RepoHolder.objects.filter(name=name).get()
-    repos = models.Repo.objects.filter(holder=user)
+    user = models.RepoHolder.get_by_name(name)
+    repos = user.repos.all()
     return to_template(request, 'user.html', dict(repos=repos, object=user))
 
 def repo(request, username, name):

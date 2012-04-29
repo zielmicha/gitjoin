@@ -21,7 +21,8 @@ def create_repo(user, holder_name, name):
     else:
         holder = models.Organization.objects.filter(name=holder_name, owners=user).get()
 
-    repo = models.Repo(holder=holder, name=name)
+    repo = models.Repo(name=name)
+    repo.holder = holder
     repo.save()
     user.rw_repos.add(repo)
     user.rwplus_repos.add(repo)

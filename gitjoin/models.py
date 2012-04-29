@@ -2,19 +2,42 @@ from django.core import exceptions
 from django.db import models
 from django.contrib import admin
 from django.contrib.auth.models import User as DjangoUser
+from django.db.models import Q
 
 class RepoHolder(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    
+
+    @classmethod
+    def get_by_name(self, name):
+        try:
+            return User.objects.filter(name=name).get()
+        except User.DoesNotExist:
+            return Organization.objects.filter(name=name).get()
+
     class Meta:
         verbose_name = "repository holder"
         verbose_name_plural = "repository holders"
-    
+        abstract = True
+
     def __unicode__(self):
         return self.name
 
 class Repo(models.Model):
-    holder = models.ForeignKey(RepoHolder)
+    holding_user = models.ForeignKey('User', related_name='repos', null=True, blank=True)
+    holding_org = models.ForeignKey('Organization', related_name='repos', null=True, blank=True)
+
+    @property
+    def holder(self):
+        return self.holding_user or self.holding_org
+
+    @holder.setter
+    def holder(self, val):
+        self.holding_org = self.holding_user = None
+        if isinstance(val, User):
+            self.holding_user = val
+        else:
+            self.holding_org = val
+
     name = models.CharField(max_length=50)
     public = models.BooleanField()
 
@@ -36,7 +59,7 @@ class Repo(models.Model):
         holder, reponame = repofull.split('/')
         
         try:
-            repo = Repo.objects.filter(name=reponame, holder__name=holder).get()
+            repo = Repo.objects.filter(name=reponame).filter(Q(holding_user__name=holder) | Q(holding_org__name=holder)).get()
         except exceptions.ObjectDoesNotExist as err:
             raise Repo.DoesNotExist('no such repository')
         
@@ -100,7 +123,6 @@ class SSHKey(models.Model):
         return u'SSHKey %s, owner: %s' % (self.name, self.owner)
 
 admin.site.register(Repo)
-admin.site.register(RepoHolder)
 admin.site.register(RepoAlias)
 admin.site.register(User)
 admin.site.register(PrivilegeOwner)

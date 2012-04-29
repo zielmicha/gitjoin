@@ -34,7 +34,7 @@
           </a>
           <a class="brand" href="/">
               Gitjoin
-              {{ settings.USERNAME }}@{{ settings.HOSTNAME }}
+              <code>{{ settings.USERNAME }}@{{ settings.HOSTNAME }}</code>
           </a>
           <div class="nav-collapse">
             {% if user.is_authenticated %}
