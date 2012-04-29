@@ -26,7 +26,7 @@ def gitauth(request):
         return http.HttpResponse('error: no such user')
     
     try:
-        repo = get_repo(request.user, repo_name)
+        repo = models.Repo.get_by_name(repo_name)
     except Exception as err:
         return http.HttpResponse('error: ' + err.message)
     

@@ -82,7 +82,7 @@ class Repo(models.Model):
     
     def check_user_authorized(self, user, access='ro'):
         if not self.is_user_authorized(user, access):
-            raise exceptions.PermissionDenied('not authorized')
+            raise exceptions.PermissionDenied('access denied for user %s' % user.name)
 
 class RepoAlias(models.Model):
     repo = models.ForeignKey(Repo)
