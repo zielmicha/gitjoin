@@ -9,6 +9,7 @@ TEMPLATE_DEBUG = DEBUG
 ADMINS = (
     ('Michał Zieliński', 'michal@zielinscy.org.pl'),
 )
+SUPERUSERS = ('zlmch', )
 
 MANAGERS = ADMINS
 APP_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -101,6 +102,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_cas.middleware.CASMiddleware',
     'django.middleware.doc.XViewMiddleware',
+    'django.middleware.transaction.TransactionMiddleware',
 )
 
 ROOT_URLCONF = 'webapp.urls'

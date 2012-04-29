@@ -41,9 +41,10 @@ class Repo(models.Model):
         
         return repo
     
-    def is_user_authorized(self, user):
+    def is_user_authorized(self, user, access='ro'):
+        sel_repos = {'ro': user.ro_repos, 'rw': user.rw_repos}[access]
         try:
-            ok = user.ro_repos.filter(id=self.id).get()
+            ok = sel_repos.filter(id=self.id).get()
         except exceptions.ObjectDoesNotExist as err:
             return False
         

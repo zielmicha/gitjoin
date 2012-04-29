@@ -37,7 +37,8 @@ def invoke_command(username, cmd, repo):
     sys.exit(status)
 
 def get_path(username, cmd, repo):
-    result = urllib.urlopen(tools.get_conf('URL') + '/gitauth?' + urllib.urlencode(dict(repo=repo, user=username))).read()
+    access = {'git-upload-pack': 'ro', 'git-receive-pack': 'rw'}[cmd]
+    result = urllib.urlopen(tools.get_conf('URL') + '/gitauth?' + urllib.urlencode(dict(repo=repo, user=username, access=access))).read()
     status, msg = result.split(':', 1)
     msg = msg.strip()
     if status == 'ok':

@@ -1,14 +1,18 @@
 from django import http
 from django.views.generic.list_detail import object_list, object_detail
 from django.views.generic.simple import direct_to_template
+from django.core.urlresolvers import reverse
 import django.core.exceptions
+import webapp.settings
 import models
+import controller
 import git
 import tools
 
 def gitauth(request):
     user_name = request.GET.get('user')
     repo_name = request.GET.get('repo')
+    access = request.GET.get('access')
     
     try:
         user = models.User.objects.filter(username=user_name).get()
@@ -20,7 +24,7 @@ def gitauth(request):
     except Exception as err:
         return http.HttpResponse('error: ' + err.message)
     
-    if not repo.is_user_authorized(user):
+    if not repo.is_user_authorized(user, access):
         return http.HttpResponse('error: not authorized')
     
     return http.HttpResponse('ok: %d' % repo.id)
@@ -28,12 +32,12 @@ def gitauth(request):
 def user(request, name):
     user = models.User.objects.filter(username=name).get()
     repos = models.Repo.objects.filter(holder=user)
-    return direct_to_template(request, 'user.html', dict(repos=repos, object=user))
+    return to_template(request, 'user.html', dict(repos=repos, object=user))
 
 def repo(request, username, name):
     repo = models.Repo.get_by_name(username + '/' + name)
     grepo = git.Repo.from_model(repo)
-    return direct_to_template(request, 'repo.html', dict(
+    return to_template(request, 'repo.html', dict(
             repo=repo,
             branch='master', #repo.default_branch,
             git_list=tools.none_on_error(grepo.list, errors=[KeyError]),
@@ -46,13 +50,13 @@ def repo_tree(request, username, repo_name, branch, path):
     object = grepo.get_branch(branch).get_tree(path)
 
     if object.is_directory():
-        return direct_to_template(request, 'repo_tree.html', dict(
+        return to_template(request, 'repo_tree.html', dict(
             branch=branch,
             repo=repo,
             path=path,
             git_list=object.list()))
     else:
-        return direct_to_template(request, 'repo_blob.html', dict(
+        return to_template(request, 'repo_blob.html', dict(
             branch=branch,
             repo=repo,
             path=path,
@@ -60,16 +64,36 @@ def repo_tree(request, username, repo_name, branch, path):
 
 def repo_admin(request, username, repo_name):
     repo = models.Repo.get_by_name(username + '/' + repo_name)
-    return direct_to_template(request, 'repo_admin.html', dict(
+    return to_template(request, 'repo_admin.html', dict(
         repo=repo))
 
 def repo_commits(request, username, repo_name, branch):
     repo = models.Repo.get_by_name(username + '/' + repo_name)
     grepo = git.Repo.from_model(repo)
     object = grepo.get_branch(branch)
-    return direct_to_template(request, 'repo_commits.html', dict(
+    return to_template(request, 'repo_commits.html', dict(
         branch=branch,
         repo=repo,
         git_commits=object.list_commits()))
 
+def repo_branches(request, username, repo_name):
+    pass
 
+def new_repo(request):
+    error = None
+    if request.POST:
+        name = request.POST.get('name')
+        try:
+            controller.create_repo(request.user, name)
+        except controller.Error as err:
+            error = err.message
+        else:
+            return http.HttpResponseRedirect(reverse('repo', args=[request.user.username, name]))
+    return to_template(request, 'new_repo.html', dict(
+        error=error
+    ))
+
+def to_template(request, name, args):
+    args = args.copy()
+    args['settings'] = webapp.settings.__dict__
+    return direct_to_template(request, name, args)

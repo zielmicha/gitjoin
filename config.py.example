@@ -1,0 +1,13 @@
+SUPERUSERS = ('root', 'admin', )
+
+# after changing database run './manage.py syncdb'
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.postgresql_psycopg2', # or .mysql or .sqlite3 or .oracle
+#        'NAME': 'git',                      # Or path to database file if using sqlite3.
+#        'USER': 'git',                      # Not used with sqlite3.
+#        'PASSWORD': 'secretpassword',       # Not used with sqlite3.
+#        'HOST': 'db.example.com',           # Set to empty string for localhost. Not used with sqlite3.
+#        'PORT': '',                         # Set to empty string for default. Not used with sqlite3.
+#    }
+#}

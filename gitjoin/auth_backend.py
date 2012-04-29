@@ -1,10 +1,9 @@
 from django.contrib.auth.models import Group
 from gitjoin.models import User
+from webapp.settings import SUPERUSERS
 
 import pam
 import pwd
-
-SUPERUSERS = ('zlmch', )
 
 class VLOBackend(object):
     
