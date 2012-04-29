@@ -1,1 +1,1 @@
-SEQUENCE = ['add_sshkey_name']
+SEQUENCE = ['add_sshkey_name', 'add_repo_public']

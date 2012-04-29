@@ -5,7 +5,7 @@
         <tr>
             <td>
                 <i class="icon-{% ifequal entry.type "dir" %}folder-open{% else %}file{% endifequal %}"></i>
-                <a href="{% url repo_tree user.name repo.name branch entry.path %}">{{entry.name}}</a></td>
+                <a href="{% url repo_tree repo.holder.name repo.name branch entry.path %}">{{entry.name}}</a></td>
             <td>{{entry.path}}</td>
         </tr>
         {% endfor %}

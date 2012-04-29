@@ -12,7 +12,7 @@
         {% if branch %}
         <a href="{% url repo_branches repo.holder.name repo.name %}" class=btn><i class="icon-share-alt"></i> {{ branch|prettygitident }}</a>
         {% endif %}
-        <a href="{% url repo_admin user.name repo.name %}" class="btn"><i class="icon-tag"></i> admin</a>
+        <a href="{% url repo_admin repo.holder.name repo.name %}" class="btn"><i class="icon-tag"></i> admin</a>
     </div>
     <ul class="nav nav-tabs">
         <li><a href="{% url repo_tree repo.holder.name repo.name branch|ormaster '' %}">Tree</a></li>
@@ -23,9 +23,9 @@
     </ul>
     {% if branch %}
     <h4>
-        <a href="{% url repo_tree user.name repo.name branch "" %}">{{ branch|prettygitident }}</a>
+        <a href="{% url repo_tree repo.holder.name repo.name branch "" %}">{{ branch|prettygitident }}</a>
         {% for fragment in path|splitpath %}
-        / <a href="{% url repo_tree user.name repo.name branch fragment.path %}">{{ fragment.name }}</a>
+        / <a href="{% url repo_tree repo.holder.name repo.name branch fragment.path %}">{{ fragment.name }}</a>
         {% endfor %}
     </h4>
     {% endif %}

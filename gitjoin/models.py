@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User as DjangoUser
 
 class RepoHolder(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     
     class Meta:
         verbose_name = "repository holder"
@@ -16,6 +16,7 @@ class RepoHolder(models.Model):
 class Repo(models.Model):
     holder = models.ForeignKey(RepoHolder)
     name = models.CharField(max_length=50)
+    public = models.BooleanField()
 
     class Meta:
         verbose_name = "repository"
@@ -42,7 +43,13 @@ class Repo(models.Model):
         return repo
     
     def is_user_authorized(self, user, access='ro'):
-        sel_repos = {'ro': user.ro_repos, 'rw': user.rw_repos}[access]
+        if self.public and access == 'ro':
+            return True
+
+        if not isinstance(user, User):
+            return False
+
+        sel_repos = {'ro': user.ro_repos, 'rw': user.rw_repos, 'rwplus': user.rwplus_repos}[access]
         try:
             ok = sel_repos.filter(id=self.id).get()
         except exceptions.ObjectDoesNotExist as err:
@@ -50,13 +57,13 @@ class Repo(models.Model):
         
         return True
     
-    def check_user_authorized(self, user):
-        if not self.is_user_authorized(user):
+    def check_user_authorized(self, user, access='ro'):
+        if not self.is_user_authorized(user, access):
             raise exceptions.PermissionDenied('not authorized')
 
 class RepoAlias(models.Model):
     repo = models.ForeignKey(Repo)
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     
     class Meta:
         verbose_name = "repository alias"
@@ -76,6 +83,9 @@ class User(PrivilegeOwner, RepoHolder, DjangoUser):
     class Meta:
         verbose_name = "user"
         verbose_name_plural = "users"
+
+class Organization(RepoHolder):
+    owners = models.ManyToManyField(User, related_name='organizations')
 
 class SSHKey(models.Model):
     owner = models.ForeignKey(User)

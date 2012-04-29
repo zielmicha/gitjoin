@@ -4,17 +4,7 @@
     {% csrf_token %}
     <fieldset>
         <div class="control-group {% if error %}error{% endif %}">
-            <label class="control-label">Holder:</label>
-            <div class="controls">
-                <select name=holder>
-                    {% for holder in holders %}
-                    <option value="{{ holder }}">{{ holder }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-        <div class="control-group {% if error %}error{% endif %}">
-            <label class="control-label">Repository name:</label>
+            <label class="control-label">Organization name:</label>
             <div class="controls">
                 <input type=text name=name>
                 {% if error %}

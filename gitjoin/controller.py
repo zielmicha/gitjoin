@@ -1,10 +1,12 @@
 import models
 import authorized_keys
 
+from django.db import IntegrityError
+
 class Error(Exception):
     pass
 
-def create_repo(user, name):
+def create_repo(user, holder_name, name):
     if not name:
         raise Error('empty name')
     try:
@@ -12,22 +14,27 @@ def create_repo(user, name):
     except models.Repo.DoesNotExist:
         pass
     else:
-        raise Error('aleardy exists')
+        raise Error('already exists')
 
-    repo = models.Repo(holder=user, name=name)
+    if holder_name == user.name:
+        holder = user
+    else:
+        holder = models.Organization.objects.filter(name=holder_name, owners=user).get()
+
+    repo = models.Repo(holder=holder, name=name)
     repo.save()
     user.rw_repos.add(repo)
     user.rwplus_repos.add(repo)
     user.ro_repos.add(repo)
     user.save()
 
-def edit_repo(repo, name, ro, rw, rwplus):
+def edit_repo(user, repo, name, public, ro, rw, rwplus):
     def _edit_list(category, new):
         entries = getattr(repo, category + '_privileged')
         if not new:
             raise Error('%s list cannot be empty' % category)
-        if repo.holder.name not in new:
-            raise Error('Repository holder needs to be in %s list' % category)
+        if (user.name not in new) and entries.filter(name=user.name).count() > 0:
+            raise Error('You cannot remove yourself from %s list' % category)
         users = []
         for name in new:
             try:
@@ -35,8 +42,10 @@ def edit_repo(repo, name, ro, rw, rwplus):
             except models.User.DoesNotExist:
                 raise Error('User %s does not exist' % name)
         entries.clear()
-        for user in users:
-            entries.add(user)
+        for new_user in users:
+            entries.add(new_user)
+
+    repo.check_user_authorized(user, 'rwplus')
 
     if not name:
         raise Error('Name must not be empty')
@@ -44,6 +53,7 @@ def edit_repo(repo, name, ro, rw, rwplus):
         raise Error('Name must not contain /')
 
     repo.name = name
+    repo.public = public
     _edit_list('ro', ro)
     _edit_list('rw', rw)
     _edit_list('rwplus', rwplus)
@@ -61,3 +71,12 @@ def delete_ssh_key(user, id):
 def add_ssh_key(user, name, data):
     models.SSHKey(owner=user, name=name, data=data).save()
     authorized_keys.create()
+
+def new_org(user, name):
+    try:
+        org  = models.Organization(name=name)
+        org.save()
+        org.owners.add(user)
+        org.save()
+    except IntegrityError:
+        raise Error('organization already exists')

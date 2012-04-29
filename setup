@@ -9,7 +9,7 @@ function installgit() {
 	mkdir -p ~/.ssh || exit 1
 	mkdir -p ~/var ~/var/tmp ~/var/locks ~/var/cache ~/repos || exit 1
 	cp -a gitjoin/ webapp/ *.py ~ || exit 1
-	ln -s ~/gitjoin/wsgi.py ~/wsgi.py
+	ln -s ~/webapp/wsgi.py ~/wsgi.py
 	bash genconf.sh > ~/config.py
 	touch ~/GITJOIN_AUTOINSTALLED
 	echo Ok. Now edit $HOME/config.py

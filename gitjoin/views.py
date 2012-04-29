@@ -9,6 +9,12 @@ import controller
 import git
 import tools
 
+def home(request):
+    return to_template(request, 'home.html', dict(
+        users=models.User.objects.all(),
+        orgs=models.Organization.objects.all(),
+    ))
+
 def gitauth(request):
     user_name = request.GET.get('user')
     repo_name = request.GET.get('repo')
@@ -20,7 +26,7 @@ def gitauth(request):
         return http.HttpResponse('error: no such user')
     
     try:
-        repo = models.Repo.get_by_name(repo_name)
+        repo = get_repo(request.user, repo_name)
     except Exception as err:
         return http.HttpResponse('error: ' + err.message)
     
@@ -30,12 +36,12 @@ def gitauth(request):
     return http.HttpResponse('ok: %d' % repo.id)
 
 def user(request, name):
-    user = models.User.objects.filter(username=name).get()
+    user = models.RepoHolder.objects.filter(name=name).get()
     repos = models.Repo.objects.filter(holder=user)
     return to_template(request, 'user.html', dict(repos=repos, object=user))
 
 def repo(request, username, name):
-    repo = models.Repo.get_by_name(username + '/' + name)
+    repo = get_repo(request.user, username + '/' + name)
     grepo = git.Repo.from_model(repo)
     return to_template(request, 'repo.html', dict(
             repo=repo,
@@ -45,7 +51,7 @@ def repo(request, username, name):
             readme=grepo.get_readme()))
 
 def repo_tree(request, username, repo_name, branch, path):
-    repo = models.Repo.get_by_name(username + '/' + repo_name)
+    repo = get_repo(request.user, username + '/' + repo_name)
     grepo = git.Repo.from_model(repo)
     object = grepo.get_branch(branch).get_tree(path)
 
@@ -63,7 +69,7 @@ def repo_tree(request, username, repo_name, branch, path):
             git_blob=object.get_data()))
 
 def repo_admin(request, username, repo_name):
-    repo = models.Repo.get_by_name(username + '/' + repo_name)
+    repo = get_repo(request.user, username + '/' + repo_name)
     error = None
 
     if request.POST:
@@ -71,8 +77,9 @@ def repo_admin(request, username, repo_name):
         ro = request.POST.get('ro').split()
         rw = request.POST.get('rw').split()
         rwplus = request.POST.get('rwplus').split()
+        public = bool(request.POST.get('public'))
         try:
-            controller.edit_repo(repo, name, ro, rw, rwplus)
+            controller.edit_repo(request.user, repo, name, public=public, ro=ro, rw=rw, rwplus=rwplus)
         except controller.Error as err:
             error = err.message
         else:
@@ -83,7 +90,7 @@ def repo_admin(request, username, repo_name):
         repo=repo))
 
 def repo_commits(request, username, repo_name, branch):
-    repo = models.Repo.get_by_name(username + '/' + repo_name)
+    repo = get_repo(request.user, username + '/' + repo_name)
     grepo = git.Repo.from_model(repo)
     object = grepo.get_branch(branch)
     return to_template(request, 'repo_commits.html', dict(
@@ -92,7 +99,7 @@ def repo_commits(request, username, repo_name, branch):
         git_commits=object.list_commits()))
 
 def repo_branches(request, username, repo_name):
-    repo = models.Repo.get_by_name(username + '/' + repo_name)
+    repo = get_repo(request.user, username + '/' + repo_name)
     grepo = git.Repo.from_model(repo)
     return to_template(request, 'repo_branches.html', dict(
         repo=repo,
@@ -102,14 +109,16 @@ def new_repo(request):
     error = None
     if request.POST:
         name = request.POST.get('name')
+        holder = request.POST.get('holder')
         try:
-            controller.create_repo(request.user, name)
+            controller.create_repo(request.user, holder, name)
         except controller.Error as err:
             error = err.message
         else:
-            return http.HttpResponseRedirect(reverse('repo', args=[request.user.username, name]))
+            return http.HttpResponseRedirect(reverse('repo', args=[holder, name]))
     return to_template(request, 'new_repo.html', dict(
-        error=error
+        error=error,
+        holders=[ request.user.name ] + [ org.name for org in request.user.organizations.all() ]
     ))
 
 def ssh_keys(request):
@@ -128,7 +137,25 @@ def ssh_keys_delete(request):
     controller.delete_ssh_key(request.user, id)
     return http.HttpResponseRedirect(reverse('ssh_keys'))
 
-def to_template(request, name, args):
+def org_new(request):
+    error = None
+    if request.POST:
+        name = request.POST.get('name')
+        try:
+            controller.new_org(request.user, name)
+        except controller.Error as err:
+            error = err.message
+        else:
+            return http.HttpResponseRedirect(reverse('user', args=[name]))
+
+    return to_template(request, 'org_new.html', dict(error=error))
+
+def get_repo(user, full_name):
+    repo = models.Repo.get_by_name(full_name)
+    repo.check_user_authorized(user)
+    return repo
+
+def to_template(request, name, args={}):
     args = args.copy()
     args['settings'] = webapp.settings.__dict__
     return direct_to_template(request, name, args)

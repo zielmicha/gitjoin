@@ -5,7 +5,7 @@
 
 <ul>
 {% for repo in repos %}
-   <li><a href="{% url repo object.username repo.name %}">{{ repo.name }}</a>
+   <li><a href="{% url repo object.name repo.name %}">{{ repo.name }}</a>
 {% endfor %}
 </ul>
 

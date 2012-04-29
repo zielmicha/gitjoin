@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Users</h3>
+<ul>
+{% for user in users %}
+    <li><a href="{% url user user.name %}">{{ user.name }}</a></li>
+{% endfor %}
+</ul>
+<h3>Organizations</h3>
+<ul>
+    {% for org in orgs %}
+    <li><a href="{% url user org.name %}">{{ org.name }}</a></li>
+    {% endfor %}
+</ul>
+<a href="{% url org_new %}" class="btn">New organization</a>
+
+{% endblock %}

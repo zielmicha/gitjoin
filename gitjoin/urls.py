@@ -16,6 +16,8 @@ urlpatterns = patterns('',
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),
 
+    url('^$', views.home, name='home'),
+    url('^org/new$', views.org_new, name='org_new'),
     url(r'^repo/new$', views.new_repo, name='new_repo'),
     url(r'^settings/ssh$', views.ssh_keys, name='ssh_keys'),
     url(r'^settings/ssh/new$', views.ssh_keys_new, name='ssh_keys_new'),
