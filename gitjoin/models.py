@@ -63,9 +63,10 @@ class RepoAlias(models.Model):
         verbose_name_plural = "repository aliases"
 
 class PrivilegeOwner(models.Model):
-    ro_repos = models.ManyToManyField(Repo, related_name='ro_privilegated')
-    rw_repos = models.ManyToManyField(Repo, related_name='rw_privilegated')
-    rwplus_repos = models.ManyToManyField(Repo, related_name='rwplus_privilegated')
+    ro_repos = models.ManyToManyField(Repo, related_name='ro_privileged')
+    rw_repos = models.ManyToManyField(Repo, related_name='rw_privileged')
+    rwplus_repos = models.ManyToManyField(Repo, related_name='rwplus_privileged')
+    name = models.CharField(max_length=50)
     
     class Meta:
         verbose_name = "privilige owner"
@@ -76,10 +77,10 @@ class User(PrivilegeOwner, RepoHolder, DjangoUser):
         verbose_name = "user"
         verbose_name_plural = "users"
 
-class SSHKey(PrivilegeOwner):
+class SSHKey(models.Model):
     owner = models.ForeignKey(User)
-    name = models.CharField(max_length=50)
     data = models.TextField()
+    name = models.CharField(max_length=50)
     
     class Meta:
         verbose_name = "SSH key"

@@ -17,6 +17,9 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
 
     url(r'^repo/new$', views.new_repo, name='new_repo'),
+    url(r'^settings/ssh$', views.ssh_keys, name='ssh_keys'),
+    url(r'^settings/ssh/new$', views.ssh_keys_new, name='ssh_keys_new'),
+    url(r'^settings/ssh/delete$', views.ssh_keys_delete, name='ssh_keys_delete'),
 
     url(r'^([^/]+)/([^/]+)/tree/([^/]+)/(.*)$', views.repo_tree, name='repo_tree'),
     url(r'^([^/]+)/([^/]+)/commits/([^/]+)$', views.repo_commits, name='repo_commits'),

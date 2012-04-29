@@ -64,7 +64,22 @@ def repo_tree(request, username, repo_name, branch, path):
 
 def repo_admin(request, username, repo_name):
     repo = models.Repo.get_by_name(username + '/' + repo_name)
+    error = None
+
+    if request.POST:
+        name = request.POST.get('name')
+        ro = request.POST.get('ro').split()
+        rw = request.POST.get('rw').split()
+        rwplus = request.POST.get('rwplus').split()
+        try:
+            controller.edit_repo(repo, name, ro, rw, rwplus)
+        except controller.Error as err:
+            error = err.message
+        else:
+            return http.HttpResponseRedirect(reverse('repo_admin', args=[username, repo.name]))
+
     return to_template(request, 'repo_admin.html', dict(
+        error=error,
         repo=repo))
 
 def repo_commits(request, username, repo_name, branch):
@@ -77,7 +92,11 @@ def repo_commits(request, username, repo_name, branch):
         git_commits=object.list_commits()))
 
 def repo_branches(request, username, repo_name):
-    pass
+    repo = models.Repo.get_by_name(username + '/' + repo_name)
+    grepo = git.Repo.from_model(repo)
+    return to_template(request, 'repo_branches.html', dict(
+        repo=repo,
+        git_branches=grepo.list_branches()))
 
 def new_repo(request):
     error = None
@@ -92,6 +111,22 @@ def new_repo(request):
     return to_template(request, 'new_repo.html', dict(
         error=error
     ))
+
+def ssh_keys(request):
+    return to_template(request, 'ssh_keys.html', dict(
+        keys=models.SSHKey.objects.filter(owner=request.user)
+    ))
+
+def ssh_keys_new(request):
+    name = request.POST.get('name')
+    data = request.POST.get('data')
+    controller.add_ssh_key(request.user, name, data)
+    return http.HttpResponseRedirect(reverse('ssh_keys'))
+
+def ssh_keys_delete(request):
+    id = request.POST.get('id')
+    controller.delete_ssh_key(request.user, id)
+    return http.HttpResponseRedirect(reverse('ssh_keys'))
 
 def to_template(request, name, args):
     args = args.copy()

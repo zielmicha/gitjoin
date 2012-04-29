@@ -9,6 +9,7 @@ class Repo(object):
     def __init__(self, path):
         if not os.path.exists(path):
             pygit2.init_repository(path, True)
+        self.path = path
         self.repo = pygit2.Repository(path)
     
     @staticmethod
@@ -43,6 +44,9 @@ class Repo(object):
 
     def get_head(self):
         return self.get_ref('HEAD')
+
+    def list_branches(self):
+        return os.listdir(os.path.join(self.path, 'refs', 'heads'))
 
 class Commit(object):
     def __init__(self, repo, ref):

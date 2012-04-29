@@ -20,3 +20,11 @@ def prettygitident(ident):
         return 'commit %s..%s' % (ident[:5], ident[-5:])
     else:
         return 'branch %s' % ident
+
+@register.filter
+def ormaster(ident):
+    return ident or 'master'
+
+@register.filter
+def usernames(users):
+    return ' '.join( user.name for user in users )

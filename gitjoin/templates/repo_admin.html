@@ -1,6 +1,33 @@
 {% extends "repo_base.html" %}
 {% block repocontent %}
-<div>
-Repo admin!
-</div>
+{% load gitjoin_extras %}
+<form method=POST class=form-horizontal>
+    {% csrf_token %}
+    {% if error %}
+    <div class="alert alert-error">
+        {{ error }}
+    </div>
+    {% endif %}
+    <fieldset>
+        <div class="control-group {% if error %}error{% endif %}">
+            <label class="control-label">Name</label>
+            <div class="controls"><input type=text name=name value="{{ repo.name }}"></div>
+        </div>
+        <div class="control-group {% if error %}error{% endif %}">
+            <label class="control-label">RO</label>
+            <div class="controls"><input type=text name=ro value="{{ repo.ro_privileged.all|usernames }}"></div>
+        </div>
+        <div class="control-group {% if error %}error{% endif %}">
+            <label class="control-label">RW</label>
+            <div class="controls"><input type=text name=rw value="{{ repo.rw_privileged.all|usernames }}"></div>
+        </div>
+        <div class="control-group {% if error %}error{% endif %}">
+            <label class="control-label">RW+</label>
+            <div class="controls"><input type=text name=rwplus value="{{ repo.rwplus_privileged.all|usernames }}"></div>
+        </div>
+        <div class="form-actions">
+            <button type=submit class="btn btn-primary">Save</button>
+        </div>
+    </fieldset>
+</form>
 {% endblock %}

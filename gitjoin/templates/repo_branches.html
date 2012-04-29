@@ -1,0 +1,13 @@
+{% extends "repo_base.html" %}
+{% block repocontent %}
+<header>
+    <h2>Branches</h2>
+</header>
+<section>
+<ul>
+{% for branch in git_branches %}
+    <li><a href="{% url repo_tree repo.holder.name repo.name branch '' %}">{{ branch }}</a></li>
+{% endfor %}
+</ul>
+</section>
+{% endblock %}

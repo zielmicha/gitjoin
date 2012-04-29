@@ -51,18 +51,17 @@
                 </a>
                 <ul class="dropdown-menu">
                   {% if user.is_staff %}
-                  <li><a href="/admin"><i class="icon-star"></i> Panel administracyjny</a></li>
-                  <li class="divider"></li>
+                  <li><a href="/admin"><i class="icon-star"></i> Admin</a></li>
                   {% endif %}
-                  <li><a href="#"><i class="icon-user"></i> Ustawienia konta</a></li>
+                  <li><a href="{% url 'ssh_keys' %}"><i class="icon-book"></i> SSH keys</a></li>
                   <li class="divider"></li>
-                  <li><a href="{% url 'django.contrib.auth.views.logout' %}"><i class="icon-off"></i> Wyloguj się</a></li>
+                  <li><a href="{% url 'django.contrib.auth.views.logout' %}"><i class="icon-off"></i> Logout</a></li>
                 </ul>
               </li>
              </ul>
             {% else %}
             <ul class="nav pull-right">
-              <li><a href="{% url 'django.contrib.auth.views.login' %}" id="login">Zaloguj się</a></li>
+              <li><a href="{% url 'django.contrib.auth.views.login' %}" id="login">Login</a></li>
             </ul>
             {% endif %}
           </div>

@@ -2,8 +2,8 @@
 function installgit() {
 	mv ~/.ssh/authorized_keys ~/authorized_keys.custom 2>/dev/null
 	touch ~/authorized_keys.custom
-	mkdir -p ~/.ssh
-	mkdir -p ~/var ~/var/tmp ~/var/locks ~/repos || exit 1
+	mkdir -p ~/.ssh || exit 1
+	mkdir -p ~/var ~/var/tmp ~/var/locks ~/var/cache ~/repos || exit 1
 	cp -a gitjoin/ webapp/ *.py ~ || exit 1
 	bash genconf.sh > ~/config.py
 	echo Ok. Now edit $HOME/config.py
