@@ -1,0 +1,23 @@
+#!/bin/bash
+cd $(dirname $0)
+
+if [ `whoami` = root ]; then
+	echo Run ./update as Git user. >&2
+	exit 1
+fi
+
+if [ ! -e ~/GITJOIN_AUTOINSTALLED ]; then
+	echo ~/GITJOIN_AUTOINSTALLED does not exist - installation was not performed by ./setup >&2
+	echo Make sure that you run ./update as Git user >&2
+	exit 1
+fi
+
+if [ -w .git ]; then
+	git pull
+else
+	echo Not doing 'git pull' - not git repository or .git not writeable
+fi
+
+cp -a gitjoin/ webapp/ *.py ~ || exit 1
+touch ~/wsgi.py
+echo Updated.

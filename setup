@@ -1,13 +1,21 @@
 #!/bin/bash
 function installgit() {
+	if [ -e ~/gitjoin ]; then
+		echo ~/gitjoin exists - aborting
+		exit 1
+	fi
 	mv ~/.ssh/authorized_keys ~/authorized_keys.custom 2>/dev/null
 	touch ~/authorized_keys.custom
 	mkdir -p ~/.ssh || exit 1
 	mkdir -p ~/var ~/var/tmp ~/var/locks ~/var/cache ~/repos || exit 1
 	cp -a gitjoin/ webapp/ *.py ~ || exit 1
+	ln -s ~/gitjoin/wsgi.py ~/wsgi.py
 	bash genconf.sh > ~/config.py
+	touch ~/GITJOIN_AUTOINSTALLED
 	echo Ok. Now edit $HOME/config.py
 }
+
+cd $(dirname $0)
 
 if [ "$(whoami)" = root ]; then
 	printf "Enter name of user to create (empty to abort): "
