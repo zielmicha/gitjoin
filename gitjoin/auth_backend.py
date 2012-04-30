@@ -1,21 +1,27 @@
-from django.contrib.auth.models import Group
-from gitjoin.models import User
+from gitjoin.models import User, Group
 from webapp.settings import SUPERUSERS
 
 import pam
 import pwd
+import traceback
 
 class VLOBackend(object):
-    
+
     def authenticate(self, *args, **kwargs):
+        try:
+            return self._authenticate(*args, **kwargs)
+        except Exception as ex:
+            # django doesn't show stack traces from auth backend
+            traceback.print_exc()
+            raise ex
+
+    def _authenticate(self, *args, **kwargs):
         username = self.check_auth(*args, **kwargs)
         
         if not username:
             return None
         
         username = username.strip().lower()
-        
-        print username
         
         if username.endswith('_admin'):
             # redirect *_admin accounts to normal accounts
@@ -36,10 +42,11 @@ class VLOBackend(object):
         group_name, first_name, last_name = get_name_and_group(username)
         
         if group_name:
+            group_name = group_name.strip().replace(' ', '-').lower()
             group, was_created = Group.objects.get_or_create(name=group_name)
         
-            if group not in user.groups.all():
-                user.groups.add(group)
+            if group not in user.git_groups.all():
+                user.git_groups.add(group)
                 user.save()
         
         if (username in SUPERUSERS) != user.is_superuser or user.is_superuser != user.is_staff:

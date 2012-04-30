@@ -18,6 +18,7 @@ urlpatterns = patterns('',
 
     url('^$', views.home, name='home'),
     url('^org/new$', views.org_new, name='org_new'),
+    url('^org/admin/([^/]+)$', views.org_admin, name='org_admin'),
     url(r'^repo/new$', views.new_repo, name='new_repo'),
     url(r'^settings/ssh$', views.ssh_keys, name='ssh_keys'),
     url(r'^settings/ssh/new$', views.ssh_keys_new, name='ssh_keys_new'),

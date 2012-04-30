@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib import admin
 from django.contrib.auth.models import User as DjangoUser
 from django.db.models import Q
+from itertools import chain
 
 class RepoHolder(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -69,20 +70,34 @@ class Repo(models.Model):
         if self.public and access == 'ro':
             return True
 
+        if self.holder == user:
+            return True
+
         if not isinstance(user, User):
             return False
 
+        # 1. verify if user is authorized
         sel_repos = {'ro': user.ro_repos, 'rw': user.rw_repos, 'rwplus': user.rwplus_repos}[access]
         try:
             ok = sel_repos.filter(id=self.id).get()
         except exceptions.ObjectDoesNotExist as err:
-            return False
+            # 2. verify if user's group is authorized
+            priv_groups  = user.git_groups.filter(** {access + '_repos': self})
+            try:
+                ok = priv_groups.get()
+            except exceptions.ObjectDoesNotExist as err:
+                return False
+            else:
+                return True
         
         return True
     
     def check_user_authorized(self, user, access='ro'):
         if not self.is_user_authorized(user, access):
             raise exceptions.PermissionDenied('access denied for user %s' % user.name)
+
+    def __unicode__(self):
+        return u'Repo: %s/%s' % (self.holder.name, self.name)
 
 class RepoAlias(models.Model):
     repo = models.ForeignKey(Repo)
@@ -93,19 +108,49 @@ class RepoAlias(models.Model):
         verbose_name_plural = "repository aliases"
 
 class PrivilegeOwner(models.Model):
-    ro_repos = models.ManyToManyField(Repo, related_name='ro_privileged')
-    rw_repos = models.ManyToManyField(Repo, related_name='rw_privileged')
-    rwplus_repos = models.ManyToManyField(Repo, related_name='rwplus_privileged')
-    name = models.CharField(max_length=50)
-    
+    ro_repos = models.ManyToManyField(Repo, related_name='ro_privileged', blank=True)
+    rw_repos = models.ManyToManyField(Repo, related_name='rw_privileged', blank=True)
+    rwplus_repos = models.ManyToManyField(Repo, related_name='rwplus_privileged', blank=True)
+
+    @classmethod
+    def get_by_name(cls, name):
+        if name.startswith('@'):
+            name = name[1:]
+            try:
+                return Group.objects.filter(name=name).get()
+            except Group.DoesNotExist:
+                raise PrivilegeOwner.DoesNotExist('Group named %s does not exist.' % name)
+        else:
+            try:
+                return User.objects.filter(name=name).get()
+            except User.DoesNotExist:
+                raise PrivilegeOwner.DoesNotExist('User named %s does not exist.' % name)
+
+    @classmethod
+    def get_privileged(cls, repo, field):
+        return chain(*[ type.objects.filter(**{field: repo}) for type in [User, Group] ] )
+
     class Meta:
         verbose_name = "privilige owner"
         verbose_name_plural = "privilege owners"
 
 class User(PrivilegeOwner, RepoHolder, DjangoUser):
+    def get_ident_name(self):
+        return self.name
+
     class Meta:
         verbose_name = "user"
         verbose_name_plural = "users"
+
+class Group(PrivilegeOwner):
+    name = models.CharField(max_length=50)
+    members = models.ManyToManyField(User, related_name='git_groups', blank=True)
+
+    def get_ident_name(self):
+        return '@' + self.name
+
+    def __unicode__(self):
+        return u'Group: %s' % self.name
 
 class Organization(RepoHolder):
     owners = models.ManyToManyField(User, related_name='organizations')
@@ -128,3 +173,4 @@ admin.site.register(User)
 admin.site.register(PrivilegeOwner)
 admin.site.register(SSHKey)
 admin.site.register(Organization)
+admin.site.register(Group)

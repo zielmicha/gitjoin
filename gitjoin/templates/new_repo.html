@@ -8,7 +8,7 @@
             <div class="controls">
                 <select name=holder>
                     {% for holder in holders %}
-                    <option value="{{ holder }}">{{ holder }}</option>
+                    <option value="{{ holder }}"{% ifequal holder req_holder %} selected{%endifequal%}>{{ holder }}</option>
                     {% endfor %}
                 </select>
             </div>

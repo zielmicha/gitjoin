@@ -3,6 +3,11 @@
 {% load gitjoin_extras %}
 <form method=POST class=form-horizontal>
     {% csrf_token %}
+    {% if not has_access %}
+    <div class="alert alert-info">
+        You are not permitted to edit these settings.
+    </div>
+    {% endif %}
     {% if error %}
     <div class="alert alert-error">
         {{ error }}
@@ -19,19 +24,21 @@
         </div>
         <div class="control-group {% if error %}error{% endif %}">
             <label class="control-label">RO</label>
-            <div class="controls"><input type=text name=ro value="{{ repo.ro_privileged.all|usernames }}"></div>
+            <div class="controls"><input type=text name=ro value="{{ repo|usernames:'ro_repos' }}"></div>
         </div>
         <div class="control-group {% if error %}error{% endif %}">
             <label class="control-label">RW</label>
-            <div class="controls"><input type=text name=rw value="{{ repo.rw_privileged.all|usernames }}"></div>
+            <div class="controls"><input type=text name=rw value="{{ repo|usernames:'rw_repos' }}"></div>
         </div>
         <div class="control-group {% if error %}error{% endif %}">
             <label class="control-label">RW+</label>
-            <div class="controls"><input type=text name=rwplus value="{{ repo.rwplus_privileged.all|usernames }}"></div>
+            <div class="controls"><input type=text name=rwplus value="{{ repo|usernames:'rwplus_repos' }}"></div>
         </div>
+        {% if has_access %}
         <div class="form-actions">
             <button type=submit class="btn btn-primary">Save</button>
         </div>
+        {% endif %}
     </fieldset>
 </form>
 {% endblock %}

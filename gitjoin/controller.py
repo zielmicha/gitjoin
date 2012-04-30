@@ -31,17 +31,18 @@ def create_repo(user, holder_name, name):
 
 def edit_repo(user, repo, name, public, ro, rw, rwplus):
     def _edit_list(category, new):
-        entries = getattr(repo, category + '_privileged')
+        entries = list(models.PrivilegeOwner.get_privileged(repo, category + '_repos'))
         if not new:
             raise Error('%s list cannot be empty' % category)
-        if (user.name not in new) and entries.filter(name=user.name).count() > 0:
+        if (user.name not in new) and (user in entries):
             raise Error('You cannot remove yourself from %s list' % category)
         users = []
         for name in new:
             try:
-                users.append(models.User.objects.filter(name=name).get())
-            except models.User.DoesNotExist:
-                raise Error('User %s does not exist' % name)
+                users.append(models.PrivilegeOwner.get_by_name(name))
+            except models.PrivilegeOwner.DoesNotExist as err:
+                raise Error(err.message)
+        entries = getattr(repo, category + '_privileged')
         entries.clear()
         for new_user in users:
             entries.add(new_user)

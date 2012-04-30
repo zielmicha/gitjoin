@@ -19,11 +19,13 @@ else
 fi
 
 cp -a gitjoin/ webapp/ *.py ~ || exit 1
-touch ~/wsgi.py
 echo Syncing DB...
 ~/manage.py syncdb --noinput
 ~/manage.py evolve --noinput --hint -x
 echo Collecting static files...
 ~/manage.py collectstatic --noinput >/dev/null
+echo Clearing cache...
+rm -r ~/var/cache/*
 setfacl -R -m u:apache:rx ~/var/static
+touch ~/wsgi.py
 echo Updated.

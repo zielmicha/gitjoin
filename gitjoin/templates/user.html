@@ -1,14 +1,42 @@
 {% extends "base.html" %}
+{% load gitjoin_extras %}
 {% block content %}
-<h1>{{ object.username }}</h1>
-<h2>Repositories</h2>
+<header class="repo-header">
+    <div class="pull-left">
+        <h3>
+            <a href="{% url user object.name %}">{{ object.name }}</a>
+        </h3>
+    </div>
+    <div class="pull-right">
+        {% if is_owner %}
+        <a href="{% url new_repo %}?holder={{ object.name }}" class=btn>
+            <i class="icon-file"></i> New repository
+        </a>
+        {% endif %}
+        {% if owners and is_owner %}
+        <a href="{% url org_admin object.name %}" class=btn>
+            <i class="icon-tag"></i> Admin
+        </a>
+        {% endif %}
+    </div>
+    <ul class="nav nav-tabs">
 
+    </ul>
+</header>
+<h3>Repositories</h3>
 <ul>
 {% for repo in repos %}
    <li><a href="{% url repo object.name repo.name %}">{{ repo.name }}</a>
 {% endfor %}
 </ul>
 
-<a href="{% url new_repo %}" class=btn>New repository</a>
+{% if owners %}
+<h3>Owners</h3>
+<ul>
+{% for owner in owners %}
+    <li><a href="{% url user owner.name %}">{{ owner.name }}</a></li>
+{% endfor %}
+</ul>
+{% endif %}
 
 {% endblock %}

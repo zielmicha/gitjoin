@@ -1,6 +1,8 @@
 from collections import namedtuple
 from django import template
 
+from gitjoin import models
+
 register = template.Library()
 
 PathFragment = namedtuple('PathFragment', 'name path')
@@ -26,5 +28,6 @@ def ormaster(ident):
     return ident or 'master'
 
 @register.filter
-def usernames(users):
-    return ' '.join( user.name for user in users )
+def usernames(repo, field=None):
+    objects = models.PrivilegeOwner.get_privileged(repo, field) if field else repo
+    return ' '.join([ obj.get_ident_name() for obj in objects ])

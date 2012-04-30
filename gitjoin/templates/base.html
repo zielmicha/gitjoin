@@ -34,7 +34,7 @@
           </a>
           <a class="brand" href="/">
               Gitjoin
-              <code>{{ settings.USERNAME }}@{{ settings.HOSTNAME }}</code>
+              <!--<code>{{ settings.USERNAME }}@{{ settings.HOSTNAME }}</code>-->
           </a>
           <div class="nav-collapse">
             {% if user.is_authenticated %}
@@ -50,10 +50,11 @@
                   <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">
-                  {% if user.is_staff %}
-                  <li><a href="/admin"><i class="icon-star"></i> Admin</a></li>
-                  {% endif %}
+                  <li><a href="{% url 'new_repo' %}"><i class="icon-file"></i> New repository</a></li>
                   <li><a href="{% url 'ssh_keys' %}"><i class="icon-book"></i> SSH keys</a></li>
+                    {% if user.is_staff %}
+                    <li><a href="/admin/"><i class="icon-star"></i> Admin</a></li>
+                    {% endif %}
                   <li class="divider"></li>
                   <li><a href="{% url 'django.contrib.auth.views.logout' %}"><i class="icon-off"></i> Logout</a></li>
                 </ul>
@@ -74,8 +75,8 @@
 {% if not is_popup %}
       <footer class="footer">
         <p>
-          &copy; Copyright 2012 by
-                    <a href="http://zielm.com">Michał Zieliński</a>.
+          &copy; 2012
+                    <a href="http://zielm.com">Michał Zieliński</a>
         </p>
       </footer>
 {% endif %}
