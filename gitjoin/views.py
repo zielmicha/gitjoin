@@ -16,22 +16,28 @@ def home(request):
     ))
 
 def gitauth(request):
-    user_name = request.GET.get('user')
+    auth_type, auth_val = request.GET.get('auth').split(':', 1)
     repo_name = request.GET.get('repo')
     access = request.GET.get('access')
-    
-    try:
-        user = models.User.objects.filter(username=user_name).get()
-    except django.core.exceptions.ObjectDoesNotExist as err:
-        return http.HttpResponse('error: no such user')
-    
+
     try:
         repo = models.Repo.get_by_name(repo_name)
     except Exception as err:
         return http.HttpResponse('error: ' + err.message)
     
-    if not repo.is_user_authorized(user, access):
-        return http.HttpResponse('error: access denied for user %s' % user.name)
+    if auth_type == 'user':
+        try:
+            user = models.User.objects.filter(username=auth_val).get()
+        except django.core.exceptions.ObjectDoesNotExist as err:
+            return http.HttpResponse('error: no such user')
+
+        if not repo.is_user_authorized(user, access):
+            return http.HttpResponse('error: access denied for user %s' % user.name)
+    elif auth_type == 'repo':
+        if int(auth_val) != repo.id:
+            return http.HttpResponse('error: deploy key not valid for repository %s' % repo_name)
+    else:
+        return http.HttpResponse('error: internal error')
     
     return http.HttpResponse('ok: %d' % repo.id)
 
@@ -40,7 +46,8 @@ def user(request, name):
     repos = holder.repos.all()
     owners = holder.owners.all() if isinstance(holder, models.Organization) else None
     is_owner = (request.user in owners) if owners else holder == request.user
-    return to_template(request, 'user.html', dict(repos=repos, object=holder, owners=owners, is_owner=is_owner))
+    groups = holder.group_set.all() if isinstance(holder, models.Organization) else None
+    return to_template(request, 'user.html', dict(repos=repos, object=holder, owners=owners, is_owner=is_owner, groups=groups))
 
 def repo(request, username, name):
     repo = get_repo(request.user, username + '/' + name)
@@ -171,7 +178,66 @@ def org_new(request):
     return to_template(request, 'org_new.html', dict(error=error))
 
 def org_admin(request, name):
-    return to_template(request, 'org_admin.html', dict())
+    holder = models.RepoHolder.get_by_name(name)
+    owners = holder.owners.all() if isinstance(holder, models.Organization) else None
+    error = None
+
+    if request.POST:
+        new_owners = request.POST.get('owners').split()
+        try:
+            controller.edit_org(request.user, holder, new_owners)
+        except controller.Error as err:
+            error = err.message
+        else:
+            return http.HttpResponseRedirect(reverse('org_admin', args=[name]))
+
+    return to_template(request, 'org_admin.html', dict(
+        object=holder,
+        owners=owners,
+        error=error,
+    ))
+
+def org_admin_group(request, name, group_name):
+    if group_name == 'owners':
+        return http.HttpResponseRedirect(reverse('org_admin', args=[name]))
+
+    holder = models.RepoHolder.get_by_name(name)
+    group = holder.group_set.get(name=group_name)
+    error = None
+
+    if request.POST:
+        new_members = request.POST.get('members').split()
+        new_name = request.POST.get('name')
+        try:
+            controller.edit_group(request.user, group, new_name, new_members)
+        except controller.Error as err:
+            error = err.message
+        else:
+            return http.HttpResponseRedirect(reverse('org_admin_group', args=[name, new_name]))
+
+    return to_template(request, 'org_admin_group.html', dict(
+        object=holder,
+        group=group,
+        error=error,
+    ))
+
+def org_admin_group_new(request, name):
+    holder = models.RepoHolder.get_by_name(name)
+    error = None
+
+    if request.POST:
+        name = request.POST.get('name')
+        try:
+            controller.new_group(request.user, holder, name)
+        except controller.Error as err:
+            error = err.message
+        else:
+            return http.HttpResponseRedirect(reverse('user', args=[holder.name]))
+
+    return to_template(request, 'org_admin_group_new.html', dict(
+        object=holder,
+        error=error,
+    ))
 
 def get_repo(user, full_name):
     repo = models.Repo.get_by_name(full_name)

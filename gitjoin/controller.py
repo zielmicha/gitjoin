@@ -1,14 +1,20 @@
 import models
 import authorized_keys
+import re
 
 from django.db import IntegrityError
 
 class Error(Exception):
     pass
 
+def check_ident(ident):
+    if not re.match('^[a-zA-Z0-9_-]+$', ident):
+        raise Error('wrong identifier %s' % ident)
+
 def create_repo(user, holder_name, name):
     if not name:
         raise Error('empty name')
+    check_ident(name)
     try:
         models.Repo.get_by_name(user.name + '/' + name)
     except models.Repo.DoesNotExist:
@@ -54,6 +60,7 @@ def edit_repo(user, repo, name, public, ro, rw, rwplus):
     if '/' in name:
         raise Error('Name must not contain /')
 
+    check_ident(name)
     repo.name = name
     repo.public = public
     _edit_list('ro', ro)
@@ -81,10 +88,65 @@ def add_ssh_key(user, target, name, data):
     authorized_keys.create()
 
 def new_org(user, name):
+    check_ident(name)
     try:
         org  = models.Organization(name=name)
         org.save()
-        org.owners.add(user)
-        org.save()
+        edit_org(user, org, [user.name])
     except IntegrityError:
         raise Error('organization already exists')
+
+def edit_org(user, org, new_owners):
+    org.check_if_owner(user)
+
+    if user.name not in new_owners:
+        raise Error('You cannot remove yourself from owners list.')
+
+    users = []
+    for new_name in new_owners:
+        try:
+            users.append(models.User.objects.get(name=new_name))
+        except models.User.DoesNotExist:
+            raise Error('User named %s does not exist' % new_name)
+
+    owners_group, _created = models.Group.objects.get_or_create(organization=org, name='owners')
+    org.owners.clear()
+    owners_group.members.clear()
+    for user in users:
+        owners_group.members.add(user)
+        org.owners.add(user)
+    org.save()
+    owners_group.save()
+
+def edit_group(user, group, name, new_members):
+    group.organization.check_if_owner(user)
+
+    existing_members = group.members.all()
+    if (user in existing_members) and user.name not in new_members:
+        raise Error('You cannot remove yourself from members list.')
+
+    users = []
+    for new_name in new_members:
+        try:
+            users.append(models.User.objects.get(name=new_name))
+        except models.User.DoesNotExist:
+            raise Error('User named %s does not exist.' % new_name)
+
+    check_ident(name)
+    if group.name != name and group.organization.group_set.filter(name=name).count() > 0:
+        raise Error('Group named %s already exists.' % name)
+    group.name = name
+    group.members.clear()
+    for user in users:
+        group.members.add(user)
+    group.save()
+
+def new_group(user, org, name):
+    org.check_if_owner(user)
+
+    check_ident(name)
+
+    group, was_created = models.Group.objects.get_or_create(name=name, organization=org)
+    if not was_created:
+        raise Error('Group named %s already exists.' % name)
+    group.save()

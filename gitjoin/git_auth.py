@@ -9,7 +9,7 @@ import urllib
 import tools
 
 def main():
-    username, = sys.argv[1:]
+    auth_obj, = sys.argv[1:]
     command = os.environ.get('SSH_ORIGINAL_COMMAND', '')
     cmd, _, arg = command.partition(' ')
     
@@ -18,13 +18,13 @@ def main():
         if len(args_split) != 1:
             sys.exit('Unexpected number of arguments: %s' % len(args_split))
         repo = args_split[0]
-        invoke_command(username, cmd, repo)
+        invoke_command(auth_obj, cmd, repo)
     else:
         sys.exit('Expected git-upload-pack or git-receive-pack, got %s instead.' % (cmd or 'nothing'))
 
-def invoke_command(username, cmd, repo):
+def invoke_command(auth_obj, cmd, repo):
     try:
-        path = get_path(username, cmd, repo)
+        path = get_path(auth_obj, cmd, repo)
     except PermissionDenied as err:
         sys.exit('Cannot access repository %s: %s' % (repo, err.message))
     
@@ -36,9 +36,9 @@ def invoke_command(username, cmd, repo):
     
     sys.exit(status)
 
-def get_path(username, cmd, repo):
+def get_path(auth_obj, cmd, repo):
     access = {'git-upload-pack': 'ro', 'git-receive-pack': 'rw'}[cmd]
-    result = urllib.urlopen(tools.get_conf('URL') + '/gitauth?' + urllib.urlencode(dict(repo=repo, user=username, access=access))).read()
+    result = urllib.urlopen(tools.get_conf('URL') + '/gitauth?' + urllib.urlencode(dict(repo=repo, auth=auth_obj, access=access))).read()
     status, msg = result.split(':', 1)
     msg = msg.strip()
     if status == 'ok':

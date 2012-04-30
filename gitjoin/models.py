@@ -120,7 +120,7 @@ class PrivilegeOwner(models.Model):
         if name.startswith('@'):
             name = name[1:]
             try:
-                return Group.objects.filter(name=name).get()
+                return Group.get_by_name(name)
             except Group.DoesNotExist:
                 raise PrivilegeOwner.DoesNotExist('Group named %s does not exist.' % name)
         else:
@@ -148,15 +148,34 @@ class User(PrivilegeOwner, RepoHolder, DjangoUser):
 class Group(PrivilegeOwner):
     name = models.CharField(max_length=50)
     members = models.ManyToManyField(User, related_name='git_groups', blank=True)
+    organization = models.ForeignKey('Organization', blank=True, null=True)
 
     def get_ident_name(self):
-        return '@' + self.name
+        if self.organization:
+            return '@' + self.organization.name + '/' + self.name
+        else:
+            return '@' + self.name
+
+    @classmethod
+    def get_by_name(cls, name):
+        if '/' in name:
+            org_name, name = name.split('/', 1)
+            org = Organization.objects.filter(name=org_name).get()
+        else:
+            org = None
+        return Group.objects.filter(organization=org, name=name).get()
 
     def __unicode__(self):
-        return u'Group: %s' % self.name
+        return u'Group: %s' % self.get_ident_name()[1:]
 
 class Organization(RepoHolder):
     owners = models.ManyToManyField(User, related_name='organizations')
+
+    def check_if_owner(self, user):
+        try:
+            self.owners.get(id=user.id)
+        except User.DoesNotExist:
+            raise exceptions.PermissionDenied
 
 class SSHKey(models.Model):
     owner = models.ForeignKey(User, blank=True, null=True)

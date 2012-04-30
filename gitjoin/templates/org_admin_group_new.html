@@ -1,0 +1,20 @@
+{% extends "org_base.html" %}
+{% block orgcontent %}
+<form method=POST class=form-horizontal>
+    {% csrf_token %}
+    <fieldset>
+        <div class="control-group {% if error %}error{% endif %}">
+            <label class="control-label">Group name:</label>
+            <div class="controls">
+                <input type=text name=name>
+                {% if error %}
+                <span class=help-inline>{{ error }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type=submit class="btn btn-primary">Create!</button>
+        </div>
+    </fieldset>
+</form>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "org_base.html" %}
+{% block orgcontent %}
+{% load gitjoin_extras %}
+<form method=POST class=form-horizontal>
+    {% csrf_token %}
+    {% if error %}
+    <div class="alert alert-error">
+        {{ error }}
+    </div>
+    {% endif %}
+    <fieldset>
+        <div class="control-group {% if error %}error{% endif %}">
+            <label class="control-label">Name</label>
+            <div class="controls"><input type=text name=name value="{{ group.name }}"></div>
+        </div>
+        <div class="control-group {% if error %}error{% endif %}">
+            <label class="control-label">Members</label>
+            <div class="controls"><input type=text name=members value="{{ group.members.all|usernames }}"></div>
+        </div>
+
+        <div class="form-actions">
+            <button type=submit class="btn btn-primary">Save</button>
+        </div>
+    </fieldset>
+</form>
+{% endblock %}

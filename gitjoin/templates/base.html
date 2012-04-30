@@ -50,10 +50,10 @@
                   <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">
-                  <li><a href="{% url 'new_repo' %}"><i class="icon-file"></i> New repository</a></li>
+                  <li><a href="{% url 'new_repo' %}"><i class="icon-plus-sign"></i> New repository</a></li>
                   <li><a href="{% url 'ssh_keys' %}"><i class="icon-book"></i> SSH keys</a></li>
                     {% if user.is_staff %}
-                    <li><a href="/admin/"><i class="icon-star"></i> Admin</a></li>
+                    <li><a href="/admin/"><i class="icon-tag"></i> Admin</a></li>
                     {% endif %}
                   <li class="divider"></li>
                   <li><a href="{% url 'django.contrib.auth.views.logout' %}"><i class="icon-off"></i> Logout</a></li>
