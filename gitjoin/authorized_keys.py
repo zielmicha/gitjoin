@@ -16,7 +16,7 @@ def create():
     
     for key in models.SSHKey.objects.all():
         keydata = tools.reformat_ssh_key(key.data)
-        username = key.owner.name
+        username = 'user:' + key.owner.name if key.owner else 'deploy:' + key.target.get_full_name()
         
         out.write('command="%s %s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty %s\n' % (auth_cmd, username, keydata))
     

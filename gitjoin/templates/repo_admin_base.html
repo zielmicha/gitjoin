@@ -1,0 +1,17 @@
+{% extends "repo_base.html" %}
+{% block repocontent %}
+<ul class="nav nav-tabs">
+    <li><a href="{% url repo_admin repo.holder.name repo.name %}">Basic</a></li>
+    <li><a href="{% url repo_admin_keys repo.holder.name repo.name %}">Deploy keys</a></li>
+    <li><a href="{% url repo_admin repo.holder.name repo.name %}">Hooks</a></li>
+</ul>
+
+{% if not has_access %}
+<div class="alert alert-info">
+    You are not permitted to edit these settings.
+</div>
+{% endif %}
+
+{% block repoadmincontent %}{% endblock %}
+
+{% endblock %}

@@ -63,15 +63,21 @@ def edit_repo(user, repo, name, public, ro, rw, rwplus):
 
 def delete_ssh_key(user, id):
     key = models.SSHKey.objects.filter(id=id).get()
-    if key.owner == user:
+    if key.owner == user or (key.target and key.target.is_user_authorized(user, 'rwplus')):
         key.delete()
     else:
         raise Error('Permission denied')
 
     authorized_keys.create()
 
-def add_ssh_key(user, name, data):
-    models.SSHKey(owner=user, name=name, data=data).save()
+def add_ssh_key(user, target, name, data):
+    key = models.SSHKey(name=name, data=data)
+    if target == 'user':
+        key.owner = user
+    else:
+        key.target = models.Repo.get_by_name(target)
+        key.target.check_user_authorized(user, 'rwplus')
+    key.save()
     authorized_keys.create()
 
 def new_org(user, name):

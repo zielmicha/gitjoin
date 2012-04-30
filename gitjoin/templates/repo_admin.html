@@ -1,13 +1,8 @@
-{% extends "repo_base.html" %}
-{% block repocontent %}
+{% extends "repo_admin_base.html" %}
+{% block repoadmincontent %}
 {% load gitjoin_extras %}
 <form method=POST class=form-horizontal>
     {% csrf_token %}
-    {% if not has_access %}
-    <div class="alert alert-info">
-        You are not permitted to edit these settings.
-    </div>
-    {% endif %}
     {% if error %}
     <div class="alert alert-error">
         {{ error }}

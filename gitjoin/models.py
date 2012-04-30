@@ -45,7 +45,10 @@ class Repo(models.Model):
     class Meta:
         verbose_name = "repository"
         verbose_name_plural = "repositories"
-    
+
+    def get_full_name(self):
+        return self.holder.name + '/' + self.name
+
     @staticmethod
     def get_by_name(repofull):
         try:
@@ -156,7 +159,8 @@ class Organization(RepoHolder):
     owners = models.ManyToManyField(User, related_name='organizations')
 
 class SSHKey(models.Model):
-    owner = models.ForeignKey(User)
+    owner = models.ForeignKey(User, blank=True, null=True)
+    target = models.ForeignKey(Repo, blank=True, null=True)
     data = models.TextField()
     name = models.CharField(max_length=50)
     

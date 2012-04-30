@@ -92,6 +92,18 @@ def repo_admin(request, username, repo_name):
         repo=repo,
         has_access=repo.is_user_authorized(request.user, 'rwplus')))
 
+def repo_admin_keys(request, username, repo_name):
+    repo = get_repo(request.user, username + '/' + repo_name)
+    error = None
+
+    return to_template(request, 'repo_admin_keys.html', dict(
+        error=error,
+        repo=repo,
+        ssh_target=username + '/' + repo_name,
+        keys=models.SSHKey.objects.filter(target=repo),
+        has_access=repo.is_user_authorized(request.user, 'rwplus')))
+
+
 def repo_commits(request, username, repo_name, branch):
     repo = get_repo(request.user, username + '/' + repo_name)
     grepo = git.Repo.from_model(repo)
@@ -127,14 +139,18 @@ def new_repo(request):
 
 def ssh_keys(request):
     return to_template(request, 'ssh_keys.html', dict(
-        keys=models.SSHKey.objects.filter(owner=request.user)
+        keys=models.SSHKey.objects.filter(owner=request.user),
+        ssh_target='user',
     ))
 
-def ssh_keys_new(request):
+def ssh_keys_new(request, target):
     name = request.POST.get('name')
     data = request.POST.get('data')
-    controller.add_ssh_key(request.user, name, data)
-    return http.HttpResponseRedirect(reverse('ssh_keys'))
+    controller.add_ssh_key(request.user, target, name, data)
+    if target == 'user':
+        return http.HttpResponseRedirect(reverse('ssh_keys'))
+    else:
+        return http.HttpResponseRedirect(reverse('repo_admin_keys', args=target.split('/', 1)))
 
 def ssh_keys_delete(request):
     id = request.POST.get('id')

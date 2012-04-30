@@ -1,0 +1,34 @@
+{% if keys %}
+<table class="table">
+    <tr>
+        <th>Name</th>
+        <th>Delete</th>
+    </tr>
+    {% for key in keys %}
+    <tr>
+        <td>{{ key.name }}
+        <td><form action="{% url ssh_keys_delete %}" style="display: inline" method=POST>
+            {% csrf_token %}
+            <input type=hidden name=id value="{{ key.id }}">
+            <button type=submit class="btn btn-danger">Delete</button>
+        </form>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+<form action="{% url ssh_keys_new ssh_target %}" method=POST class=form-horizontal>
+    {% csrf_token %}
+    <fieldset>
+        <div class="control-group {% if error %}error{% endif %}">
+            <label class="control-label">Name</label>
+            <div class="controls"><input type=text name=name></div>
+        </div>
+        <div class="control-group {% if error %}error{% endif %}">
+            <label class="control-label">Data</label>
+            <div class="controls"><textarea name=data></textarea></div>
+        </div>
+        <div class="form-actions">
+            <button type=submit class="btn btn-primary">Add</button>
+        </div>
+    </fieldset>
+</form>
