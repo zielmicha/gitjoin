@@ -89,7 +89,11 @@ class Repo(models.Model):
             try:
                 ok = priv_groups.get()
             except exceptions.ObjectDoesNotExist as err:
-                return False
+                # 3. verify if user is owner of holder
+                if isinstance(self.holder, Organization) and self.holder.is_owner(user):
+                    return True
+                else:
+                    return False
             else:
                 return True
         
@@ -171,10 +175,15 @@ class Group(PrivilegeOwner):
 class Organization(RepoHolder):
     owners = models.ManyToManyField(User, related_name='organizations')
 
-    def check_if_owner(self, user):
+    def is_owner(self, user):
         try:
             self.owners.get(id=user.id)
+            return True
         except User.DoesNotExist:
+            return False
+
+    def check_if_owner(self, user):
+        if not self.is_owner(user):
             raise exceptions.PermissionDenied
 
 class SSHKey(models.Model):

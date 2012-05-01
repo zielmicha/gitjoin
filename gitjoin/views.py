@@ -16,30 +16,33 @@ def home(request):
     ))
 
 def gitauth(request):
-    auth_type, auth_val = request.GET.get('auth').split(':', 1)
-    repo_name = request.GET.get('repo')
-    access = request.GET.get('access')
-
     try:
-        repo = models.Repo.get_by_name(repo_name)
-    except Exception as err:
-        return http.HttpResponse('error: ' + err.message)
-    
-    if auth_type == 'user':
+        auth_type, auth_val = request.GET.get('auth').split(':', 1)
+        repo_name = request.GET.get('repo')
+        access = request.GET.get('access')
+        
         try:
-            user = models.User.objects.filter(username=auth_val).get()
-        except django.core.exceptions.ObjectDoesNotExist as err:
-            return http.HttpResponse('error: no such user')
+            repo = models.Repo.get_by_name(repo_name)
+        except Exception as err:
+            return http.HttpResponse('error: ' + err.message)
 
-        if not repo.is_user_authorized(user, access):
-            return http.HttpResponse('error: access denied for user %s' % user.name)
-    elif auth_type == 'repo':
-        if int(auth_val) != repo.id:
-            return http.HttpResponse('error: deploy key not valid for repository %s' % repo_name)
-    else:
-        return http.HttpResponse('error: internal error')
-    
-    return http.HttpResponse('ok: %d' % repo.id)
+        if auth_type == 'user':
+            try:
+                user = models.User.objects.filter(username=auth_val).get()
+            except django.core.exceptions.ObjectDoesNotExist as err:
+                return http.HttpResponse('error: no such user')
+
+            if not repo.is_user_authorized(user, access):
+                return http.HttpResponse('error: access denied for user %s' % user.name)
+        elif auth_type == 'repo':
+            if int(auth_val) != repo.id:
+                return http.HttpResponse('error: deploy key not valid for repository %s' % repo_name)
+        else:
+            return http.HttpResponse('error: internal error')
+
+        return http.HttpResponse('ok: %d' % repo.id)
+    except Exception as err:
+        return http.HttpResponse('error: exception %r' % err)
 
 def user(request, name):
     holder = models.RepoHolder.get_by_name(name)
@@ -110,7 +113,6 @@ def repo_admin_keys(request, username, repo_name):
         keys=models.SSHKey.objects.filter(target=repo),
         has_access=repo.is_user_authorized(request.user, 'rwplus')))
 
-
 def repo_commits(request, username, repo_name, branch):
     repo = get_repo(request.user, username + '/' + repo_name)
     grepo = git.Repo.from_model(repo)
@@ -119,6 +121,16 @@ def repo_commits(request, username, repo_name, branch):
         branch=branch,
         repo=repo,
         git_commits=object.list_commits()))
+
+def repo_commit(request, username, repo_name, commit):
+    repo = get_repo(request.user, username + '/' + repo_name)
+    grepo = git.Repo.from_model(repo)
+    object = grepo.get_branch(commit)
+    return to_template(request, 'repo_commit.html', dict(
+        commit=object,
+        branch=commit,
+        diff=object.diff_with_prev(),
+        repo=repo))
 
 def repo_branches(request, username, repo_name):
     repo = get_repo(request.user, username + '/' + repo_name)

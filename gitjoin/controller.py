@@ -88,6 +88,8 @@ def add_ssh_key(user, target, name, data):
     authorized_keys.create()
 
 def new_org(user, name):
+    if not user.is_staff:
+        raise Error('Permission denied')
     check_ident(name)
     try:
         org  = models.Organization(name=name)

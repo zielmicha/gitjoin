@@ -2,6 +2,7 @@ import pygit2
 import os
 import tools
 import collections
+import subprocess
 
 Entry = collections.namedtuple('Entry', 'path name type')
 
@@ -79,10 +80,23 @@ class Commit(object):
     def hex(self):
         return self.obj.hex
 
+    @property
+    def parents(self):
+        return self.obj.parents
+
     @tools.reusable_generator
     def list_commits(self):
         for obj in self.repo.walk(self.obj.oid, pygit2.GIT_SORT_TIME):
             yield Commit(self.repo, obj)
+
+    def diff_with_prev(self):
+        if self.parents:
+            return self.diff(self.parents[0].hex) # TODO
+        else:
+            return None
+
+    def diff(self, id):
+        return subprocess.check_output(['git', 'diff', self.obj.hex, id], cwd=self.repo.path)
 
 class Object(object):
     def __init__(self, repo, path, obj):

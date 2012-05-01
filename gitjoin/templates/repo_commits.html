@@ -4,11 +4,14 @@
         No commits.
 {% endif %}
 {% load gitjoin_extras %}
-<ol>
+<table class="table table-striped">
 {% for commit in git_commits %}
-    <li>
-        <a href="{% url repo_tree repo.holder.name repo.name commit.hex "" %}">{{ commit.hex|prettygitident }} &ndash; {{ commit.author.name }} &ndash; {{ commit.message }} </a>
-    </li>
+    <tr>
+        <td class=nobr><a href="{% url repo_commit repo.holder.name repo.name commit.hex %}">{{ commit.hex|prettygitident }}</a></td>
+        <td class=nobr>{{ commit.author.time|prettydate }}</td>
+        <td class=nobr>{{ commit.author.name }}</td>
+        <td>{{ commit.message }}</td>
+    </tr>
 {% endfor %}
-</ol>
+</table>
 {% endblock %}

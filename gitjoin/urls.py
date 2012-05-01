@@ -27,6 +27,7 @@ urlpatterns = patterns('',
     url(r'^settings/ssh/delete$', views.ssh_keys_delete, name='ssh_keys_delete'),
 
     url(r'^([^/]+)/([^/]+)/tree/([^/]+)/(.*)$', views.repo_tree, name='repo_tree'),
+    url(r'^([^/]+)/([^/]+)/commit/([^/]+)$', views.repo_commit, name='repo_commit'),
     url(r'^([^/]+)/([^/]+)/commits/([^/]+)$', views.repo_commits, name='repo_commits'),
     url(r'^([^/]+)/([^/]+)/branches$', views.repo_branches, name='repo_branches'),
     url(r'^([^/]+)/([^/]+)/admin$', views.repo_admin, name='repo_admin'),

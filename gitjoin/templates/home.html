@@ -12,6 +12,7 @@
     <li><a href="{% url user org.name %}">{{ org.name }}</a></li>
     {% endfor %}
 </ul>
+{% if user.is_staff %}
 <a href="{% url org_new %}" class="btn">New organization</a>
-
+{% endif %}
 {% endblock %}
