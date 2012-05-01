@@ -14,9 +14,8 @@
         </a>
         {% endif %}
         {% if owners and is_owner %}
-        <a href="{% url org_admin object.name %}" class=btn>
-            <i class="icon-tag"></i> Admin
-        </a>
+        <a href="{% url org_admin_group_new object.name %}" class=btn><i class="icon-plus-sign"></i> Add group</a>
+        <a href="{% url org_admin object.name %}" class=btn><i class="icon-tag"></i> Admin</a>
         {% endif %}
     </div>
     <ul class="nav nav-tabs">

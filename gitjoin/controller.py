@@ -143,6 +143,10 @@ def edit_group(user, group, name, new_members):
         group.members.add(user)
     group.save()
 
+def delete_group(user, group):
+    group.organization.check_if_owner(user)
+    group.delete()
+
 def new_group(user, org, name):
     org.check_if_owner(user)
 

@@ -2,7 +2,7 @@ import pygit2
 import os
 import tools
 import collections
-import subprocess
+import os
 
 Entry = collections.namedtuple('Entry', 'path name type')
 
@@ -89,14 +89,19 @@ class Commit(object):
         for obj in self.repo.walk(self.obj.oid, pygit2.GIT_SORT_TIME):
             yield Commit(self.repo, obj)
 
-    def diff_with_prev(self):
+    def diff_with_prev(self, raw=False, file=None):
         if self.parents:
-            return self.diff(self.parents[0].hex) # TODO
+            return self.diff(self.parents[0].hex, raw=raw, file=file) # TODO
         else:
             return None
 
-    def diff(self, id):
-        return subprocess.check_output(['git', 'diff', self.obj.hex, id], cwd=self.repo.path)
+    def diff(self, id, raw=False, file=None):
+        file_args = ['--', file] if file else []
+        if raw:
+            result = check_output(['git', 'diff', '--raw', self.obj.hex, id] + file_args, cwd=self.repo.path)
+
+        else:
+            return check_output(['git', 'diff', self.obj.hex, id] + file_args, cwd=self.repo.path)
 
 class Object(object):
     def __init__(self, repo, path, obj):
@@ -117,3 +122,28 @@ class Object(object):
 
     def get_data(self):
         return self.obj.read_raw()
+
+def check_output(cmd, cwd):
+    # workaround for http://bugs.python.org/issue13156, can't use subprocess
+    # http://stackoverflow.com/questions/967443/python-module-to-shellquote-unshellquote
+    import re
+    _quote_pos = re.compile('(?=[^-0-9a-zA-Z_./\n])')
+
+    def quote(arg):
+        r"""
+        >>> quote('\t')
+        '\\\t'
+        >>> quote('foo bar')
+        'foo\\ bar'
+        """
+        # This is the logic emacs uses
+        if arg:
+            return _quote_pos.sub('\\\\', arg).replace('\n',"'\n'")
+        else:
+            return "''"
+
+    assert isinstance(cmd, list)
+    command = ' '.join(quote(arg) for arg in cmd)
+    command_cd = 'cd %s && %s' % (quote(cwd), command)
+    return os.popen(command_cd, 'r').read()
+

@@ -1,0 +1,15 @@
+{% extends "repo_base.html" %}
+{% load gitjoin_extras %}
+{% block repocontent %}
+
+<section>
+    <blockquote class=commit-msg>{{ commit.message }}</blockquote>
+    by {{ commit.author.name }} {{ commit.author.time|prettydate }}
+</section>
+
+<nav class="commit-header">
+    <a href="{% url repo_tree repo.holder.name repo.name branch '' %}" class="btn btn-primary">Browse code</a>
+    <a href="{% url repo_commit_diff repo.holder.name repo.name branch %}" class=btn>Commit diff</a>
+</nav>
+{% block commitcontent %}{% endblock %}
+{% endblock %}

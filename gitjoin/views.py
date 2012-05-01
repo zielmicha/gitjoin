@@ -20,7 +20,7 @@ def gitauth(request):
         auth_type, auth_val = request.GET.get('auth').split(':', 1)
         repo_name = request.GET.get('repo')
         access = request.GET.get('access')
-        
+
         try:
             repo = models.Repo.get_by_name(repo_name)
         except Exception as err:
@@ -126,7 +126,17 @@ def repo_commit(request, username, repo_name, commit):
     repo = get_repo(request.user, username + '/' + repo_name)
     grepo = git.Repo.from_model(repo)
     object = grepo.get_branch(commit)
-    return to_template(request, 'repo_commit.html', dict(
+    return to_template(request, 'commit.html', dict(
+        commit=object,
+        branch=commit,
+        diff=object.diff_with_prev(),
+        repo=repo))
+
+def repo_commit_diff(request, username, repo_name, commit):
+    repo = get_repo(request.user, username + '/' + repo_name)
+    grepo = git.Repo.from_model(repo)
+    object = grepo.get_branch(commit)
+    return to_template(request, 'commit_diff.html', dict(
         commit=object,
         branch=commit,
         diff=object.diff_with_prev(),
@@ -221,11 +231,17 @@ def org_admin_group(request, name, group_name):
         new_members = request.POST.get('members').split()
         new_name = request.POST.get('name')
         try:
-            controller.edit_group(request.user, group, new_name, new_members)
+            if request.POST.get('delete'):
+                controller.delete_group(request.user, group)
+            else:
+                controller.edit_group(request.user, group, new_name, new_members)
         except controller.Error as err:
             error = err.message
         else:
-            return http.HttpResponseRedirect(reverse('org_admin_group', args=[name, new_name]))
+            if request.POST.get('delete'):
+                return http.HttpResponseRedirect(reverse('user', args=[name]))
+            else:
+                return http.HttpResponseRedirect(reverse('org_admin_group', args=[name, new_name]))
 
     return to_template(request, 'org_admin_group.html', dict(
         object=holder,

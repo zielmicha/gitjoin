@@ -1,0 +1,10 @@
+{% extends "commit_base.html" %}
+{% load gitjoin_extras %}
+{% block commitcontent %}
+
+{% if diff %}
+<pre>{{ diff|gitdiff }}</pre>
+{% else %}
+First commit.
+{% endif %}
+{% endblock %}
