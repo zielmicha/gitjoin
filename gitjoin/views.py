@@ -129,17 +129,17 @@ def repo_commit(request, username, repo_name, commit):
     return to_template(request, 'commit.html', dict(
         commit=object,
         branch=commit,
-        diff=object.diff_with_prev(),
+        diff=object.diff_with_prev(raw=True),
         repo=repo))
 
-def repo_commit_diff(request, username, repo_name, commit):
+def repo_commit_diff(request, username, repo_name, commit, path=None):
     repo = get_repo(request.user, username + '/' + repo_name)
     grepo = git.Repo.from_model(repo)
     object = grepo.get_branch(commit)
     return to_template(request, 'commit_diff.html', dict(
         commit=object,
         branch=commit,
-        diff=object.diff_with_prev(),
+        diff=object.diff_with_prev(file=path),
         repo=repo))
 
 def repo_branches(request, username, repo_name):

@@ -21,7 +21,7 @@
     </ul>
     {% if branch %}
     <h4>
-        <a href="{% url repo_tree repo.holder.name repo.name branch "" %}">{{ branch|prettygitident }}</a>
+        <a href="{% url repo_commit repo.holder.name repo.name branch %}">{{ branch|prettygitident }}</a>
         {% for fragment in path|splitpath %}
         / <a href="{% url repo_tree repo.holder.name repo.name branch fragment.path %}">{{ fragment.name }}</a>
         {% endfor %}

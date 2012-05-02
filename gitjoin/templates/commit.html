@@ -2,9 +2,21 @@
 {% load gitjoin_extras %}
 {% block commitcontent %}
 
-{% if diff %}
-<pre>{{ diff|gitdiff }}</pre>
-{% else %}
-First commit.
-{% endif %}
+<table class="table">
+{% for entry in diff %}
+    <tr>
+        <td class="action-{{ entry.action }}">{{ entry.action }}</td>
+        <td>
+            <a href="{% url repo_commit_diff repo.holder.name repo.name branch entry.path %}">{{ entry.path }}</a>
+            {% ifnotequal entry.new_mode entry.old_mode %}
+                {% ifnotequal entry.action "D" %}
+                <span class=mode-marker>
+                (mode {% ifnotequal entry.action "A" %}{{ entry.old_mode }} &rArr; {% endifnotequal %} {{ entry.new_mode }})
+                </span>
+                {% endifnotequal %}
+            {% endifnotequal %}
+        </td>
+    </tr>
+{% endfor %}
+</table>
 {% endblock %}

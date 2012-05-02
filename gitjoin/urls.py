@@ -28,7 +28,7 @@ urlpatterns = patterns('',
 
     url(r'^([^/]+)/([^/]+)/tree/([^/]+)/(.*)$', views.repo_tree, name='repo_tree'),
     url(r'^([^/]+)/([^/]+)/commit/([^/]+)$', views.repo_commit, name='repo_commit'),
-    url(r'^([^/]+)/([^/]+)/commit/([^/]+)/diff$', views.repo_commit_diff, name='repo_commit_diff'),
+    url(r'^([^/]+)/([^/]+)/commit/([^/]+)/diff/(.*)$', views.repo_commit_diff, name='repo_commit_diff'),
     url(r'^([^/]+)/([^/]+)/commits/([^/]+)$', views.repo_commits, name='repo_commits'),
     url(r'^([^/]+)/([^/]+)/branches$', views.repo_branches, name='repo_branches'),
     url(r'^([^/]+)/([^/]+)/admin$', views.repo_admin, name='repo_admin'),

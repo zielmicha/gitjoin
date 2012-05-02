@@ -5,6 +5,7 @@ import collections
 import os
 
 Entry = collections.namedtuple('Entry', 'path name type')
+DiffEntry = collections.namedtuple('DiffEntry', 'action path old_mode new_mode')
 
 class Repo(object):
     def __init__(self, path):
@@ -99,9 +100,15 @@ class Commit(object):
         file_args = ['--', file] if file else []
         if raw:
             result = check_output(['git', 'diff', '--raw', self.obj.hex, id] + file_args, cwd=self.repo.path)
-
+            return _parse_raw_diff(result)
         else:
             return check_output(['git', 'diff', self.obj.hex, id] + file_args, cwd=self.repo.path)
+
+@tools.reusable_generator
+def _parse_raw_diff(result):
+    for line in result.splitlines():
+        old_mode, new_mode, old_hex, new_hex, action, path = line.split(None, 5)
+        yield DiffEntry(action=action, path=path, old_mode=old_mode.lstrip(':'), new_mode=new_mode)
 
 class Object(object):
     def __init__(self, repo, path, obj):

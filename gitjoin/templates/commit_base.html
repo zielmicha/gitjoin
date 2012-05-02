@@ -9,7 +9,7 @@
 
 <nav class="commit-header">
     <a href="{% url repo_tree repo.holder.name repo.name branch '' %}" class="btn btn-primary">Browse code</a>
-    <a href="{% url repo_commit_diff repo.holder.name repo.name branch %}" class=btn>Commit diff</a>
+    <a href="{% url repo_commit_diff repo.holder.name repo.name branch '' %}" class=btn>Commit diff</a>
 </nav>
 {% block commitcontent %}{% endblock %}
 {% endblock %}
