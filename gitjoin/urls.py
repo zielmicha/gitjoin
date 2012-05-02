@@ -33,6 +33,7 @@ urlpatterns = patterns('',
     url(r'^([^/]+)/([^/]+)/branches$', views.repo_branches, name='repo_branches'),
     url(r'^([^/]+)/([^/]+)/admin$', views.repo_admin, name='repo_admin'),
     url(r'^([^/]+)/([^/]+)/admin/keys$', views.repo_admin_keys, name='repo_admin_keys'),
+    url(r'^([^/]+)/([^/]+).git(|/.*)$', views.repo_git_http, name='repo_git_http'),
     url(r'^([^/]+)/([^/]+)$', views.repo, name='repo'),
     url(r'^([^/]+)/?$', views.user, name='user'),
 )

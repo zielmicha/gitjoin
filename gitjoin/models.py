@@ -101,7 +101,7 @@ class Repo(models.Model):
     
     def check_user_authorized(self, user, access='ro'):
         if not self.is_user_authorized(user, access):
-            raise exceptions.PermissionDenied('access denied for user %s' % user.name)
+            raise exceptions.PermissionDenied('access denied for user %s' % getattr(user, 'name', 'anonymous'))
 
     def __unicode__(self):
         return u'Repo: %s/%s' % (self.holder.name, self.name)

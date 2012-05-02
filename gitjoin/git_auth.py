@@ -28,7 +28,7 @@ def invoke_command(auth_obj, cmd, repo):
     except PermissionDenied as err:
         sys.exit('Cannot access repository %s: %s' % (repo, err.message))
     
-    with tools.global_lock(), tools.lock('repo_' + path):
+    with tools.global_lock(), tools.lock('repo_' + path, shared=cmd == 'git-upload-pack'):
         if not os.path.exists(path + '/HEAD'):
             git_init(path)
         
@@ -38,7 +38,7 @@ def invoke_command(auth_obj, cmd, repo):
 
 def get_path(auth_obj, cmd, repo):
     access = {'git-upload-pack': 'ro', 'git-receive-pack': 'rw'}[cmd]
-    result = urllib.urlopen(tools.get_conf('URL') + '/gitauth?' + urllib.urlencode(dict(repo=repo, auth=auth_obj, access=access))).read()
+    result = urllib.urlopen(tools.get_conf('URL').rstrip('/') + '/gitauth?' + urllib.urlencode(dict(repo=repo, auth=auth_obj, access=access))).read()
     status, msg = result.split(':', 1)
     msg = msg.strip()
     if status == 'ok':

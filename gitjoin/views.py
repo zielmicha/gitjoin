@@ -1,5 +1,6 @@
 from django import http
 from django.views.generic.list_detail import object_list, object_detail
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.simple import direct_to_template
 from django.core.urlresolvers import reverse
 import django.core.exceptions
@@ -8,6 +9,7 @@ import models
 import controller
 import git
 import tools
+from mysubprocess import check_output
 
 def home(request):
     return to_template(request, 'home.html', dict(
@@ -148,6 +150,25 @@ def repo_branches(request, username, repo_name):
     return to_template(request, 'repo_branches.html', dict(
         repo=repo,
         git_branches=grepo.list_branches()))
+
+@csrf_exempt
+def repo_git_http(request, username, repo_name, path):
+    repo = get_repo(request.user, username + '/' + repo_name)
+    grepo = git.Repo.from_model(repo)
+    # PATH_INFO=/ GIT_PROJECT_ROOT=~/lemur/ REQUEST_METHOD=GET
+    env = {'PATH_INFO': path,
+           'GIT_PROJECT_ROOT': grepo.path,
+           'REQUEST_METHOD': request.method,
+           'GIT_HTTP_EXPORT_ALL': '1'}
+    # TODO: QUERY_STRING, REMOTE_USER
+    data = check_output(['/usr/lib/git-core/git-http-backend'], env=env)
+    header_data, response_data = data.split('\r\n\r\n', 1)
+    headers = dict( line.strip().split(':', 1) for line in header_data.splitlines() )
+    response = http.HttpResponse(response_data)
+
+    if headers.get('Status'):
+        response.status_code = int(headers['Status'].split()[0])
+    return response
 
 def new_repo(request):
     error = None

@@ -165,5 +165,7 @@ LOGGING = {
 
 execfile(os.path.expanduser('~/config.py'))
 
+URL = URL.rstrip('/')
+
 if USERNAME != getpass.getuser():
     print 'WARNING! server run as user %s, configured to be run as %s' % (getpass.getuser(), USERNAME)

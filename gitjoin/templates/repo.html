@@ -1,5 +1,6 @@
 {% extends "repo_base.html" %}
 {% block repocontent %}
-<pre>git clone {{ settings.USERNAME }}@{{ settings.HOSTNAME }}:{{ repo.holder.name }}/{{ repo.name }}</pre>
+<pre>git clone {{ settings.USERNAME }}@{{ settings.HOSTNAME }}:{{ repo.holder.name }}/{{ repo.name }}{% if repo.public %}
+git clone {{ settings.URL }}{% url repo_git_http repo.holder.name repo.name '' %}{% endif %}</pre>
 {% include "repo_list_comp.html" %}
 {% endblock %}

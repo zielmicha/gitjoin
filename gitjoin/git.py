@@ -2,7 +2,7 @@ import pygit2
 import os
 import tools
 import collections
-import os
+from mysubprocess import check_output
 
 Entry = collections.namedtuple('Entry', 'path name type')
 DiffEntry = collections.namedtuple('DiffEntry', 'action path old_mode new_mode')
@@ -99,10 +99,10 @@ class Commit(object):
     def diff(self, id, raw=False, file=None):
         file_args = ['--', file] if file else []
         if raw:
-            result = check_output(['git', 'diff', '--raw', self.obj.hex, id] + file_args, cwd=self.repo.path)
+            result = check_output(['git', 'diff', '--raw', id, self.obj.hex] + file_args, cwd=self.repo.path)
             return _parse_raw_diff(result)
         else:
-            return check_output(['git', 'diff', self.obj.hex, id] + file_args, cwd=self.repo.path)
+            return check_output(['git', 'diff', id, self.obj.hex] + file_args, cwd=self.repo.path)
 
 @tools.reusable_generator
 def _parse_raw_diff(result):
@@ -129,28 +129,3 @@ class Object(object):
 
     def get_data(self):
         return self.obj.read_raw()
-
-def check_output(cmd, cwd):
-    # workaround for http://bugs.python.org/issue13156, can't use subprocess
-    # http://stackoverflow.com/questions/967443/python-module-to-shellquote-unshellquote
-    import re
-    _quote_pos = re.compile('(?=[^-0-9a-zA-Z_./\n])')
-
-    def quote(arg):
-        r"""
-        >>> quote('\t')
-        '\\\t'
-        >>> quote('foo bar')
-        'foo\\ bar'
-        """
-        # This is the logic emacs uses
-        if arg:
-            return _quote_pos.sub('\\\\', arg).replace('\n',"'\n'")
-        else:
-            return "''"
-
-    assert isinstance(cmd, list)
-    command = ' '.join(quote(arg) for arg in cmd)
-    command_cd = 'cd %s && %s' % (quote(cwd), command)
-    return os.popen(command_cd, 'r').read()
-
