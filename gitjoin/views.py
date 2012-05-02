@@ -161,7 +161,7 @@ def repo_git_http(request, username, repo_name, path):
            'REQUEST_METHOD': request.method,
            'GIT_HTTP_EXPORT_ALL': '1'}
     # TODO: QUERY_STRING, REMOTE_USER
-    data = check_output(['/usr/lib/git-core/git-http-backend'], env=env)
+    data = check_output([webapp.settings.GIT_CORE_PATH + '/git-http-backend'], env=env)
     header_data, response_data = data.split('\r\n\r\n', 1)
     headers = dict( line.strip().split(':', 1) for line in header_data.splitlines() )
     response = http.HttpResponse(response_data)
