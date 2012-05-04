@@ -94,6 +94,7 @@ def new_org(user, name):
     try:
         org  = models.Organization(name=name)
         org.save()
+        org.owners.add(user)
         edit_org(user, org, [user.name])
     except IntegrityError:
         raise Error('organization already exists')
