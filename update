@@ -17,6 +17,7 @@ if [ "$1" != no-pull -a -w .git ]; then
 	git pull
 	if [ $? != 0 ]; then
 	    echo Pull failed. Run "./update no-pull" to skip git pull
+	    exit 1
 	fi
 	echo Chaining to new update script
 	exec ./update no-pull

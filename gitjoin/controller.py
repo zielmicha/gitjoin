@@ -18,7 +18,7 @@ def create_repo(user, holder_name, name):
         raise Error('empty name')
     check_ident(name)
     try:
-        models.Repo.get_by_name(user.name + '/' + name)
+        models.Repo.get_by_name(holder_name + '/' + name)
     except models.Repo.DoesNotExist:
         pass
     else:
