@@ -4,6 +4,8 @@ import re
 
 from django.db import IntegrityError
 
+RESERVED_GLOBAL_NAMES = 'global', 'settings'
+
 class Error(Exception):
     pass
 
@@ -91,6 +93,8 @@ def new_org(user, name):
     if not user.is_staff:
         raise Error('Permission denied')
     check_ident(name)
+    if name in RESERVED_GLOBAL_NAMES:
+        raise Error('%s is a reserved name' % name)
     try:
         org  = models.Organization(name=name)
         org.save()

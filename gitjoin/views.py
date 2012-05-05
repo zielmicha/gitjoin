@@ -60,7 +60,7 @@ def repo(request, username, name):
     return to_template(request, 'repo.html', dict(
             repo=repo,
             branch='master', #repo.default_branch,
-            git_list=tools.none_on_error(grepo.list, errors=[KeyError]),
+            git_list=tools.none_on_error(lambda: grepo.list(include_commit_info=True), errors=[KeyError]),
             path='/',
             readme=grepo.get_readme()))
 
@@ -74,7 +74,7 @@ def repo_tree(request, username, repo_name, branch, path):
             branch=branch,
             repo=repo,
             path=path,
-            git_list=object.list()))
+            git_list=object.list(include_commit_info=True)))
     else:
         return to_template(request, 'repo_blob.html', dict(
             branch=branch,
