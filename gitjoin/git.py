@@ -115,13 +115,18 @@ class Commit(object):
 
     @tools.cached(key=lambda self: str(self.hex))
     def get_files_commit(self):
-        # probably there is a better way to do this, but I don't know how
-        # caching is necessary to make it O(n)
+        # Probably there is a better way to do this, but I don't know how.
+        # Caching is necessary to make it O(n), because of merges.
         ' Returns dictionary mapping file path to commit hex when file was last modified '
-        #print self.hex
+
+        # prevent maximum recursion depth exceeded error
+        for commit in reversed(self.list_commits()):
+            if commit.hex != self.hex:
+                commit.get_files_commit()
+
         d = {}
 
-        if len(self.parents) > 1:
+        if len(self.parents) > 1: # merge
             for parent in self.parents:
                 d.update(parent.get_files_commit())
         elif len(self.parents) == 1:
@@ -176,8 +181,8 @@ class Object(object):
 if __name__ == '__main__':
     import pprint
     from gitjoin import git
-    repo = git.Repo('repos/3')
+    repo = git.Repo('repos/4')
     master = repo.get_branch('master')
     msg = master.get_files_commit()
-    print pprint.pformat(msg)[:200], ' etc...'
-    print pprint.pformat(master.get_files_commit_from_dir('webapp'))
+    #print pprint.pformat(msg)[:200], ' etc...'
+    #print pprint.pformat(master.get_files_commit_from_dir('webapp'))

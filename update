@@ -12,10 +12,18 @@ if [ ! -e ~/GITJOIN_AUTOINSTALLED ]; then
 	exit 1
 fi
 
-if [ -w .git ]; then
+if [ "$1" != no-pull -a -w .git ]; then
+    echo Pulling changes
 	git pull
+	if [ $? != 0 ]; then
+	    echo Pull failed. Run "./update no-pull" to skip git pull
+	fi
+	echo Chaining to new update script
+	exec ./update no-pull
 else
-	echo Not doing 'git pull' - not git repository or .git not writeable
+	if [ "$1" != no-pull ]; then
+	    echo Not doing 'git pull' - not git repository or .git not writeable
+	fi
 fi
 
 cp -a gitjoin/ webapp/ *.py ~ || exit 1
@@ -24,8 +32,8 @@ echo Syncing DB...
 ~/manage.py evolve --noinput --hint -x
 echo Collecting static files...
 ~/manage.py collectstatic --noinput >/dev/null
-echo Clearing cache...
-rm -r ~/var/cache/*
+#echo Clearing cache...
+#rm -r ~/var/cache/*
 setfacl -R -m u:apache:rx ~/var/static
 touch ~/wsgi.py
 echo Updated.
