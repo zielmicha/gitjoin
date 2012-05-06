@@ -113,16 +113,17 @@ class Commit(object):
                 d[k[len(path):].rstrip('/')] = v
         return d
 
-    @tools.cached(key=lambda self: str(self.hex))
-    def get_files_commit(self):
+    @tools.cached(key=lambda self, **k: str(self.hex))
+    def get_files_commit(self, _no_check_recur=False):
         # Probably there is a better way to do this, but I don't know how.
         # Caching is necessary to make it O(n), because of merges.
         ' Returns dictionary mapping file path to commit hex when file was last modified '
 
         # prevent maximum recursion depth exceeded error
-        for commit in reversed(self.list_commits()):
-            if commit.hex != self.hex:
-                commit.get_files_commit()
+        if not _no_check_recur:
+            for commit in reversed(self.list_commits()):
+                if commit.hex != self.hex:
+                    commit.get_files_commit(_no_check_recur=True)
 
         d = {}
 
