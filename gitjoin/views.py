@@ -17,35 +17,6 @@ def home(request):
         orgs=models.Organization.objects.all(),
     ))
 
-def gitauth(request):
-    try:
-        auth_type, auth_val = request.GET.get('auth').split(':', 1)
-        repo_name = request.GET.get('repo')
-        access = request.GET.get('access')
-
-        try:
-            repo = models.Repo.get_by_name(repo_name)
-        except Exception as err:
-            return http.HttpResponse('error: ' + err.message)
-
-        if auth_type == 'user':
-            try:
-                user = models.User.objects.filter(username=auth_val).get()
-            except django.core.exceptions.ObjectDoesNotExist as err:
-                return http.HttpResponse('error: no such user')
-
-            if not repo.is_user_authorized(user, access):
-                return http.HttpResponse('error: access denied for user %s' % user.name)
-        elif auth_type == 'repo':
-            if int(auth_val) != repo.id:
-                return http.HttpResponse('error: deploy key not valid for repository %s' % repo_name)
-        else:
-            return http.HttpResponse('error: internal error')
-
-        return http.HttpResponse('ok: %d' % repo.id)
-    except Exception as err:
-        return http.HttpResponse('error: exception %r' % err)
-
 def user(request, name):
     holder = models.RepoHolder.get_by_name(name)
     repos = holder.repos.all()

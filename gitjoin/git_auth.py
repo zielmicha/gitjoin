@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-import httplib
 import sys
 import os
 import shlex
 import subprocess
-import urllib
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'webapp.settings'
+
+from gitjoin import models
 
 import tools
 
@@ -29,32 +31,39 @@ def invoke_command(auth_obj, cmd, repo):
         sys.exit('Cannot access repository %s: %s' % (repo, err.message))
     
     with tools.global_lock(), tools.lock('repo_' + path, shared=cmd == 'git-upload-pack'):
-        if not os.path.exists(path + '/HEAD'):
-            git_init(path)
-        
         status = subprocess.call((cmd, path))
     
     sys.exit(status)
 
 def get_path(auth_obj, cmd, repo):
     access = {'git-upload-pack': 'ro', 'git-receive-pack': 'rw'}[cmd]
-    result = urllib.urlopen(tools.get_conf('URL').rstrip('/') + '/global/gitauth?' + urllib.urlencode(dict(repo=repo, auth=auth_obj, access=access))).read()
-    status, msg = result.split(':', 1)
-    msg = msg.strip()
-    if status == 'ok':
-        ident = int(msg)
-        return os.path.expanduser('~/repos/%d' % ident)
-    else:
-        raise PermissionDenied(msg)
 
-def git_init(path):
-    if not os.path.exists(path):
-        os.mkdir(path)
-    os.chdir(path)
-    print >>sys.stderr, 'Initializing new Git repository...'
-    status = subprocess.call(('git', 'init', '--bare'), stdout=sys.stderr)
-    if status != 0:
-        sys.exit('Initialization failed.')
+    ident = gitauth(repo_name=repo, auth=auth_obj, access=access)
+    return os.path.expanduser('~/repos/%d' % ident)
+
+def gitauth(repo_name, auth, access):
+    auth_type, auth_val = auth.split(':', 1)
+
+    try:
+        repo = models.Repo.get_by_name(repo_name)
+    except Exception as err:
+        raise PermissionDenied(err.message)
+
+    if auth_type == 'user':
+        try:
+            user = models.User.objects.filter(username=auth_val).get()
+        except django.core.exceptions.ObjectDoesNotExist as err:
+            raise PermissionDenied('no such user')
+
+        if not repo.is_user_authorized(user, access):
+            raise PermissionDenied('access denied for user %s' % user.name)
+    elif auth_type == 'repo':
+        if int(auth_val) != repo.id:
+            raise PermissionDenied('deploy key not valid for repository %s' % repo_name)
+    else:
+        raise PermissionDenied('internal error')
+
+    return repo.id
 
 class PermissionDenied(Exception): pass
 

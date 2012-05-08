@@ -9,7 +9,7 @@ from gitjoin import views
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^global/gitauth', views.gitauth),
+    #xurl(r'^global/gitauth', views.gitauth),
 
     url(r'^global/accounts/login/$', login, ), #{'template_name': 'login.html'}
     url(r'^global/accounts/logout/$', logout, ), #{'template_name': 'logout.html'}

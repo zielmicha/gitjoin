@@ -4,6 +4,7 @@ import os
 import tempfile
 import functools
 import marshal
+import zlib
 
 class lock(object):
     ' exclusive by default '
@@ -78,7 +79,7 @@ class Cache:
     def __setitem__(self, key, val):
         assert isinstance(key, str)
         cache_val = marshal.dumps(val)
-        return overwrite_file(self.path + '/' + quote_path(key), cache_val, tmp_dir=self.path)
+        return overwrite_file(self.path + '/' + quote_path(key), zlib.compress(cache_val), tmp_dir=self.path)
 
     def __getitem__(self, key):
         try:
@@ -86,7 +87,7 @@ class Cache:
         except IOError:
             raise KeyError(key)
         else:
-            return marshal.loads(data)
+            return marshal.loads(zlib.decompress(data))
 
 global_cache = Cache(os.path.expanduser('~/var/cache'))
 

@@ -7,13 +7,14 @@ from mysubprocess import check_output
 Entry = collections.namedtuple('Entry', 'path name type last_commit')
 DiffEntry = collections.namedtuple('DiffEntry', 'action path old_mode new_mode')
 
+def init(path):
+    pygit2.init_repository(path, True)
+
 class Repo(object):
     def __init__(self, path):
-        if not os.path.exists(path):
-            pygit2.init_repository(path, True)
         self.path = path
         self.repo = pygit2.Repository(path)
-    
+
     @staticmethod
     def from_model(model):
         return Repo(os.path.expanduser('~/repos/%d' % model.id))

@@ -1,5 +1,7 @@
 import models
 import authorized_keys
+import git
+import os
 import re
 
 from django.db import IntegrityError
@@ -36,6 +38,12 @@ def create_repo(user, holder_name, name):
     user.rwplus_repos.add(repo)
     user.ro_repos.add(repo)
     user.save()
+
+    init_repo(repo)
+
+def init_repo(repo):
+    path = os.path.expanduser('~/repos/%d' % repo.id)
+    git.init(path)
 
 def edit_repo(user, repo, name, public, ro, rw, rwplus):
     def _edit_list(category, new):
