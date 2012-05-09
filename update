@@ -30,14 +30,14 @@ fi
 cp -a gitjoin/ webapp/ *.py ~ || exit 1
 echo Syncing DB...
 ~/manage.py syncdb --noinput
-~/manage.py evolve --noinput --hint -x
+~/manage.py evolve --noinput --hint -x || exit 1
 echo Collecting static files...
-~/manage.py collectstatic --noinput >/dev/null
+~/manage.py collectstatic --noinput >/dev/null || exit 1
 #echo Clearing cache...
 #rm -r ~/var/cache/*
 echo Regenerating authorized keys...
-DJANGO_SETTINGS_MODULE=webapp.settings python -m gitjoin.authorized_keys
+DJANGO_SETTINGS_MODULE=webapp.settings python -m gitjoin.authorized_keys || exit 1
 echo Setting ACL and reloading...
-setfacl -R -m u:apache:rx ~/var/static
+setfacl -R -m u:apache:rx ~/var/static 2>/dev/null || echo "Updating linux ACL failed - do not care if you don't use it."
 touch ~/wsgi.py
 echo Updated.

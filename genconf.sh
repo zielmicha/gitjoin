@@ -6,7 +6,7 @@ echo HOSTNAME = \'$hostname\'
 echo
 echo AUTHENTICATION_BACKENDS = \(
 echo "    'gitjoin.auth_backend.CASBackend',"
-echo "    # or 'webapp.auth_backend.PAMBackend'"
+echo "    # or 'gitjoin.auth_backend.PAMBackend'"
 echo \)
 echo CAS_SERVER_URL = \'http://webauth.$domain/\'
 git_core_path=`git --exec-path`

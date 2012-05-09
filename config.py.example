@@ -1,6 +1,6 @@
 SUPERUSERS = ('root', 'admin', )
 
-# run ./update after changing database
+# run ~/gitjoin.git/update after changing database
 # DATABASES = {
 #    'default': {
 #        'ENGINE': 'django.db.backends.postgresql_psycopg2', # or .mysql or .sqlite3 or .oracle
