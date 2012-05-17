@@ -18,7 +18,10 @@ def home(request):
     ))
 
 def user(request, name):
-    holder = models.RepoHolder.get_by_name(name)
+    try:
+        holder = models.RepoHolder.get_by_name(name)
+    except django.core.exceptions.ObjectDoesNotExist:
+        raise http.Http404
     repos = holder.repos.all()
     owners = holder.owners.all() if isinstance(holder, models.Organization) else None
     is_owner = (request.user in owners) if owners else holder == request.user

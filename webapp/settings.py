@@ -125,6 +125,7 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'gitjoin',
     'django_evolution',
+    'django_extensions',
 )
 
 AUTHENTICATION_BACKENDS = (
