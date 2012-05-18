@@ -51,6 +51,15 @@ class Repo(object):
     def list_branches(self):
         return os.listdir(os.path.join(self.path, 'refs', 'heads'))
 
+    def set_hook(self, name, value):
+        if not os.path.exists(self.path + '/hooks'):
+            os.mkdir(self.path + '/hooks')
+
+        assert '/' not in name
+        path = self.path + '/hooks/' + name
+        tools.overwrite_file(path, value)
+        os.chmod(path, 0o755)
+
 class Commit(object):
     def __init__(self, repo, ref):
         self.repo = repo
@@ -88,7 +97,7 @@ class Commit(object):
 
     @tools.reusable_generator
     def list_commits(self):
-        for obj in self.repo.walk(self.obj.oid, pygit2.GIT_SORT_TIME):
+        for obj in self.repo.walk(self.obj.oid, pygit2.GIT_SORT_TOPOLOGICAL):
             yield Commit(self.repo, obj)
 
     def diff_with_prev(self, raw=False, file=None):

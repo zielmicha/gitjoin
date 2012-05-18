@@ -1,6 +1,35 @@
 #!/bin/bash
 cd $(dirname $0)
 
+function check_module() {
+    python - $1 <<'EOF'
+import sys
+try:
+    __import__(sys.argv[1])
+except ImportError:
+    sys.exit(1)
+EOF
+    if [ $? = 1 ]; then
+        echo -e '\033[1;31m'
+        echo "WARNING!"
+        echo -n "Python module $1 does not exist."
+        echo -e '\033[0m'
+        echo "$2"
+        echo
+        return 1
+    fi
+}
+
+function check_cmd() {
+    which $1 >/dev/null || (
+        echo -e '\033[1;31m'
+        echo "WARNING!"
+        echo "Command $1 not found."
+        echo -e '\033[0m'
+        exit 1
+    )
+}
+
 if [ `whoami` = root ]; then
 	echo Run ./update as Git user. >&2
 	exit 1
@@ -27,6 +56,35 @@ else
 	fi
 fi
 
+check_module django "To install it:
+    easy_install django"
+
+check_module django_extensions "To install it:
+    easy_install django-extensions"
+
+check_module django_evolution "To install it:
+    easy_install django-evolution"
+
+check_module pretty "To install it:
+    easy_install py-pretty"
+
+check_module pygit2 "To install it:
+
+git clone https://github.com/libgit2/libgit2.git
+git checkout master
+cd libgit2
+mkdir build && cd build
+cmake ..
+cmake --build . --target install
+ln -s /usr/local/lib/libgit2.so.0 /usr/lib/libgit2.so.0
+easy_install pygit2
+
+See also: https://github.com/libgit2/libgit2#building-libgit2---using-cmake"
+
+check_cmd realpath
+
+export DJANGO_SETTINGS_MODULE=webapp.settings
+
 cp -a gitjoin/ webapp/ *.py ~ || exit 1
 echo Syncing DB...
 ~/manage.py syncdb --noinput
@@ -36,8 +94,12 @@ echo Collecting static files...
 #echo Clearing cache...
 #rm -r ~/var/cache/*
 echo Regenerating authorized keys...
-DJANGO_SETTINGS_MODULE=webapp.settings python -m gitjoin.authorized_keys || exit 1
+python -m gitjoin.authorized_keys || exit 1
+echo Regenerating hooks...
+python -m gitjoin.hooks regen || exit 1
 echo Setting ACL and reloading...
 setfacl -R -m u:apache:rx ~/var/static 2>/dev/null || echo "Updating linux ACL failed - do not care if you don't use it."
 touch ~/wsgi.py
+
+
 echo Updated.

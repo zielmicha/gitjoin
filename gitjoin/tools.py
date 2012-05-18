@@ -5,6 +5,9 @@ import tempfile
 import functools
 import marshal
 import zlib
+import sys
+import time
+import atexit
 
 class lock(object):
     ' exclusive by default '
@@ -72,7 +75,7 @@ def none_on_error(func, errors=None, none_value=None, *args, **kwargs):
                 raise
         return None
 
-class Cache:
+class FSCache:
     def __init__(self, path):
         self.path = path
 
@@ -89,7 +92,47 @@ class Cache:
         else:
             return marshal.loads(zlib.decompress(data))
 
-global_cache = Cache(os.path.expanduser('~/var/cache'))
+class KyotoCache:
+    def __init__(self, path):
+        self.path = path
+        self.db = None
+
+    def _open(self):
+        if self.db:
+            return
+        self.db = kyotocabinet.DB()
+        # it's important to close db softly or next time it will recover for ~30s/1GB
+        atexit.register(lambda: self.close())
+        if not self.db.open(self.path, kyotocabinet.DB.OWRITER | kyotocabinet.DB.OCREATE):
+            raise IOError('Failed to open %s' % path)
+
+    def __setitem__(self, key, val):
+        self._open()
+        assert isinstance(key, str)
+        cache_val = zlib.compress(marshal.dumps(val))
+        self.db.set(key, cache_val)
+
+    def __getitem__(self, key):
+        self._open()
+        data = self.db.get(key)
+        if not data:
+            raise KeyError(key)
+        else:
+            return marshal.loads(zlib.decompress(data))
+
+    def __del__(self):
+        self.close()
+
+    def close(self):
+        if self.db:
+            self.db.close()
+
+try:
+    import kyotocabinet
+    global_cache = KyotoCache(os.path.expanduser('~/var/cache.kch'))
+except ImportError:
+    print >>sys.stderr, 'using FS cache as global cache'
+    global_cache = FSCache(os.path.expanduser('~/var/cache'))
 
 def cached(key, cache=global_cache, funcid=None):
     def dec_apply(func):

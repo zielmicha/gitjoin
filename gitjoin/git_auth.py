@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 import sys
+
+sys.stdout = sys.stderr # but do not redirect native stdout
+
 import os
 import shlex
 import subprocess
@@ -29,9 +32,10 @@ def invoke_command(auth_obj, cmd, repo):
         path = get_path(auth_obj, cmd, repo)
     except PermissionDenied as err:
         sys.exit('Cannot access repository %s: %s' % (repo, err.message))
-    
-    with tools.global_lock(), tools.lock('repo_' + path, shared=cmd == 'git-upload-pack'):
-        status = subprocess.call((cmd, path))
+
+    # really required?
+    # with tools.global_lock(), tools.lock('repo_' + path, shared=cmd == 'git-upload-pack'):
+    status = subprocess.call((cmd, path))
     
     sys.exit(status)
 
