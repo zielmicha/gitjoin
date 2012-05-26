@@ -26,4 +26,12 @@
 </ul>
 {% endif %}
 
+{% if accessible_repos %}
+    <h3>Accessible repositories</h3>
+    <ul>
+    {% for repo in accessible_repos %}
+        <li><a href="{% url repo repo.holder.name repo.name %}">{{ repo.holder.name }}/{{ repo.name }}</a>
+    {% endfor %}
+{% endif %}
+
 {% endblock %}

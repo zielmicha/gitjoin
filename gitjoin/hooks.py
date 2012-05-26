@@ -1,5 +1,3 @@
-print 'start!'
-
 import os
 import sys
 

@@ -57,7 +57,7 @@ class VLOBackend(object):
             user.first_name = first_name
             user.last_name = last_name
             user.save()
-        
+
         print 'ok, return', user
         
         return user

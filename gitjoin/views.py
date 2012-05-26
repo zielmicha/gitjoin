@@ -26,7 +26,15 @@ def user(request, name):
     owners = holder.owners.all() if isinstance(holder, models.Organization) else None
     is_owner = (request.user in owners) if owners else holder == request.user
     groups = holder.group_set.all() if isinstance(holder, models.Organization) else None
-    return to_template(request, 'user.html', dict(repos=repos, object=holder, owners=owners, is_owner=is_owner, groups=groups))
+    accessible_repos = None if isinstance(holder, models.Organization) else holder.get_accessible_repos()
+
+    return to_template(request, 'user.html', dict(
+        repos=repos,
+        object=holder,
+        owners=owners,
+        is_owner=is_owner,
+        groups=groups,
+        accessible_repos=accessible_repos))
 
 def repo(request, username, name):
     repo = get_repo(request.user, username + '/' + name)

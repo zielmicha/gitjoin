@@ -59,6 +59,9 @@ fi
 check_module django "To install it:
     easy_install django"
 
+check_module django_cas "To install it:
+    easy_install django_cas"
+
 check_module django_extensions "To install it:
     easy_install django-extensions"
 

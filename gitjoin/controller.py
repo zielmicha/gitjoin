@@ -1,5 +1,6 @@
 import models
 import authorized_keys
+import hooks
 import git
 import os
 import re
@@ -44,6 +45,8 @@ def create_repo(user, holder_name, name):
 def init_repo(repo):
     path = os.path.expanduser('~/repos/%d' % repo.id)
     git.init(path)
+    repo = git.Repo(path)
+    hooks.regenerate_hooks(repo)
 
 def edit_repo(user, repo, name, public, ro, rw, rwplus):
     def _edit_list(category, new):

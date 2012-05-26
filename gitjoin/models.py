@@ -145,9 +145,27 @@ class User(PrivilegeOwner, RepoHolder, DjangoUser):
     def get_ident_name(self):
         return self.name
 
+    def get_accessible_repos(self):
+        l = []
+        l += self.ro_repos.all()
+        for group in self.git_groups.all():
+            l += group.ro_repos.all()
+        l += self.repos.all()
+        return set(l)
+
     class Meta:
         verbose_name = "user"
         verbose_name_plural = "users"
+
+    # fix django_cas
+    class FakeMessageSet:
+        def create(self, message): pass
+
+    @property
+    def message_set(self):
+        return User.FakeMessageSet()
+
+    # end fix django_cas
 
 class Group(PrivilegeOwner):
     name = models.CharField(max_length=50)
