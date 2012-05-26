@@ -127,12 +127,7 @@ class KyotoCache:
         if self.db:
             self.db.close()
 
-try:
-    import kyotocabinet
-    global_cache = KyotoCache(os.path.expanduser('~/var/cache.kch'))
-except ImportError:
-    print >>sys.stderr, 'using FS cache as global cache'
-    global_cache = FSCache(os.path.expanduser('~/var/cache'))
+global_cache = FSCache(os.path.expanduser('~/var/cache'))
 
 def cached(key, cache=global_cache, funcid=None):
     def dec_apply(func):
