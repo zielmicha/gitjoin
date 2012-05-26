@@ -73,6 +73,9 @@ def edit_repo(user, repo, name, public, ro, rw, rwplus):
         for new_user in users:
             entries.add(new_user)
 
+    def _propagate(to, from_):
+        to += from_
+
     repo.check_user_authorized(user, 'rwplus')
 
     if not name:
@@ -83,6 +86,10 @@ def edit_repo(user, repo, name, public, ro, rw, rwplus):
     check_ident(name)
     repo.name = name
     repo.public = public
+
+    _propagate(rw, rwplus)
+    _propagate(ro, rw)
+
     _edit_list('ro', ro)
     _edit_list('rw', rw)
     _edit_list('rwplus', rwplus)
