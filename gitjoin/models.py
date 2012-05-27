@@ -11,6 +11,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User as DjangoUser
 from django.db.models import Q
 from itertools import chain
+from webapp import settings
 
 class RepoHolder(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -85,6 +86,9 @@ class Repo(models.Model):
 
         if not isinstance(user, User):
             return False
+
+        if user.name in settings.CAN_ACCESS_ANY_REPO:
+            return True
 
         # 1. verify if user is authorized
         sel_repos = {'ro': user.ro_repos, 'rw': user.rw_repos, 'rwplus': user.rwplus_repos}[access]

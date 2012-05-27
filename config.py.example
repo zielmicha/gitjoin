@@ -1,4 +1,5 @@
 SUPERUSERS = ('root', 'admin', )
+CAN_ACCESS_ANY_REPO = ()
 
 # run ~/gitjoin.git/update after changing database
 # DATABASES = {
