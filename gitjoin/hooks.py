@@ -60,6 +60,9 @@ def run_hook(path, name, args):
         hook_update(repo, ref, old, new)
 
 def hook_update(repo, ref, old, new):
+    if new.count('0') == len(new):
+        print 'processing branch deletion... (nothing)'
+        return 
     new_commit = repo.get_commit(new)
     print 'counting commits...',
     sys.stdout.flush()
