@@ -36,7 +36,7 @@ def main():
         sys.exit('missing action')
 
     action = sys.argv[1]
-    permission = os.environ['GIT_PERMISSION']
+    permission = os.environ.get('GIT_PERMISSION', '')
 
     if action == 'regen':
         regenerate_all_hooks()
