@@ -7,6 +7,7 @@
 
 import os
 import sys
+import itertools
 
 import models
 import git
@@ -35,6 +36,7 @@ def main():
         sys.exit('missing action')
 
     action = sys.argv[1]
+    permission = os.environ['GIT_PERMISSION']
 
     if action == 'regen':
         regenerate_all_hooks()
@@ -42,14 +44,12 @@ def main():
         hook_name = sys.argv[2]
         hook_args = sys.argv[3:]
         git_dir = os.environ['GIT_DIR']
-        status = run_hook(git_dir, hook_name, hook_args)
+        status = run_hook(git_dir, permission, hook_name, hook_args)
         sys.exit(status)
     else:
         sys.exit('unknown action %r' % action)
 
-def run_hook(path, name, args):
-    print path, 'hook', name, ' '.join(args)
-
+def run_hook(path, permission, name, args):
     repo = git.Repo(path)
 
     if name not in supported_hooks:
@@ -57,31 +57,69 @@ def run_hook(path, name, args):
 
     if name == 'update':
         ref, old, new = args
-        hook_update(repo, ref, old, new)
+        hook_update(repo, permission, ref, old, new)
 
-def hook_update(repo, ref, old, new):
-    if new.count('0') == len(new):
-        print 'processing branch deletion... (nothing)'
-        return 
-    new_commit = repo.get_commit(new)
+def hook_update(repo, permission, ref, old, new):
     print 'counting commits...',
     sys.stdout.flush()
-    commits = list(iter_from(old, new_commit))
-    print len(commits)
-    for i, commit in enumerate(commits):
+    to_add, to_remove = get_commit_changes(repo, old, new)
+    print 'new', len(to_add),
+    if to_remove:
+        print 'remove', len(to_remove)
+    else:
+        print
+
+    if to_remove and permission != 'rwplus':
+        sys.exit('You are not permitted to rewind this repository.')
+
+    for i, hex in enumerate(to_add):
+        commit = repo.get_commit(hex)
         commit.get_files_commit(_no_check_recur=True)
-        print '\rprocessing commits (%d/%d, %s)...' % (i + 1, len(commits), commit.hex),
+        print '\rprocessing new commits (%d/%d, %s)...' % (i + 1, len(to_add), commit.hex),
         sys.stdout.flush()
+
     print 'done'
 
-def iter_from(old, new_commit):
-    def _i():
-        for commit in new_commit.list_commits():
-            if commit.hex == old:
-                break
-            yield commit
-    return reversed(list(_i()))
+def get_commit_changes(repo, old, new):
+    zeros = '0000000000000000000000000000000000000000'
+    old_commit_list = repo.get_commit(old).list_commits() if old != zeros else []
+    new_commit_list = repo.get_commit(new).list_commits() if new != zeros else []
+    iterated_from_new = set()
+    iterated_from_old = set()
 
+    common_ancestor = None
+
+    for commit_from_new, commit_from_old in itertools.izip_longest(new_commit_list, old_commit_list, fillvalue=None):
+        if commit_from_new:
+            commit_from_new = commit_from_new.hex
+            iterated_from_new.add(commit_from_new)
+
+        if commit_from_old:
+            commit_from_old = commit_from_old.hex
+            iterated_from_old.add(commit_from_old)
+
+        if commit_from_new in iterated_from_old:
+            common_ancestor = commit_from_new
+            break
+
+        if commit_from_old in iterated_from_new:
+            common_ancestor = commit_from_old
+            break
+
+    to_add = []
+    to_remove = []
+
+    for commit in old_commit_list:
+        if commit.hex == common_ancestor:
+            break
+        to_remove.append(commit.hex)
+
+    for commit in new_commit_list:
+        if commit.hex == common_ancestor:
+            break
+        to_add.append(commit.hex)
+
+    return to_add, to_remove
 
 if __name__ == '__main__':
     main()

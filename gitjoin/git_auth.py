@@ -36,24 +36,26 @@ def main():
 
 def invoke_command(auth_obj, cmd, repo):
     try:
-        path = get_path(auth_obj, cmd, repo)
+        path, permission = get_path_and_permission(auth_obj, cmd, repo)
     except PermissionDenied as err:
         sys.exit('Cannot access repository %s: %s' % (repo, err.message))
 
+    os.environ['GIT_PERMISSION'] = permission
     # really required?
     # with tools.global_lock(), tools.lock('repo_' + path, shared=cmd == 'git-upload-pack'):
     status = subprocess.call((cmd, path))
     
     sys.exit(status)
 
-def get_path(auth_obj, cmd, repo):
+def get_path_and_permission(auth_obj, cmd, repo):
     access = {'git-upload-pack': 'ro', 'git-receive-pack': 'rw'}[cmd]
 
-    ident = gitauth(repo_name=repo, auth=auth_obj, access=access)
-    return os.path.expanduser('~/repos/%d' % ident)
+    ident, permission = gitauth(repo_name=repo, auth=auth_obj, access=access)
+    return os.path.expanduser('~/repos/%d' % ident), permission
 
 def gitauth(repo_name, auth, access):
     auth_type, auth_val = auth.split(':', 1)
+    permission = access
 
     try:
         repo = models.Repo.get_by_name(repo_name)
@@ -68,13 +70,18 @@ def gitauth(repo_name, auth, access):
 
         if not repo.is_user_authorized(user, access):
             raise PermissionDenied('access denied for user %s' % user.name)
+
+        if access == 'rw' and repo.is_user_authorized(user, 'rwplus'):
+            permission = 'rwplus'
     elif auth_type == 'repo':
         if int(auth_val) != repo.id:
             raise PermissionDenied('deploy key not valid for repository %s' % repo_name)
+        #if access == 'rw':
+        #    permission = 'rwplus'
     else:
         raise PermissionDenied('internal error')
 
-    return repo.id
+    return repo.id, permission
 
 class PermissionDenied(Exception): pass
 
