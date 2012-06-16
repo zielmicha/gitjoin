@@ -54,7 +54,7 @@ def reformat_ssh_key(data):
         raise ValueError('Not enough values in SSH key.')
     
     if len(split) == 2:
-        split = split + ('',)
+        split = split + ['',]
     
     type, value, author = split
     
