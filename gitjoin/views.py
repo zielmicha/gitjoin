@@ -56,7 +56,10 @@ def repo(request, username, name):
 def repo_tree(request, username, repo_name, branch, path):
     repo = get_repo(request.user, username + '/' + repo_name)
     grepo = git.Repo.from_model(repo)
-    object = grepo.get_branch(branch).get_tree(path)
+    try:
+        object = grepo.get_branch(branch).get_tree(path)
+    except KeyError:
+        raise http.Http404
 
     if object.is_directory():
         return to_template(request, 'repo_tree.html', dict(
@@ -107,7 +110,10 @@ def repo_admin_keys(request, username, repo_name):
 def repo_commits(request, username, repo_name, branch):
     repo = get_repo(request.user, username + '/' + repo_name)
     grepo = git.Repo.from_model(repo)
-    object = grepo.get_branch(branch)
+    try:
+        object = grepo.get_branch(branch)
+    except KeyError:
+        raise http.Http404
     return to_template(request, 'repo_commits.html', dict(
         branch=branch,
         repo=repo,
@@ -116,7 +122,10 @@ def repo_commits(request, username, repo_name, branch):
 def repo_commit(request, username, repo_name, commit):
     repo = get_repo(request.user, username + '/' + repo_name)
     grepo = git.Repo.from_model(repo)
-    object = grepo.get_branch(commit)
+    try:
+        object = grepo.get_branch(commit)
+    except KeyError:
+        raise http.Http404
     return to_template(request, 'commit.html', dict(
         commit=object,
         branch=commit,
@@ -126,7 +135,10 @@ def repo_commit(request, username, repo_name, commit):
 def repo_commit_diff(request, username, repo_name, commit, path=None):
     repo = get_repo(request.user, username + '/' + repo_name)
     grepo = git.Repo.from_model(repo)
-    object = grepo.get_branch(commit)
+    try:
+        object = grepo.get_branch(commit)
+    except KeyError:
+        raise http.Http404
     return to_template(request, 'commit_diff.html', dict(
         commit=object,
         branch=commit,
@@ -278,7 +290,10 @@ def org_admin_group_new(request, name):
     ))
 
 def get_repo(user, full_name):
-    repo = models.Repo.get_by_name(full_name)
+    try:
+        repo = models.Repo.get_by_name(full_name)
+    except models.Repo.DoesNotExist:
+        raise http.Http404
     repo.check_user_authorized(user)
     return repo
 
