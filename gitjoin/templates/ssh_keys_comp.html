@@ -16,6 +16,10 @@
     {% endfor %}
 </table>
 {% endif %}
+Execute this code to add your <code>id_rsa.pub</code>:
+<pre>
+wget -O- -q {{ settings.URL }}{% url ssh_keys_new_script ssh_target %} | sh
+</pre>
 <form action="{% url ssh_keys_new ssh_target %}" method=POST class=form-horizontal>
     {% csrf_token %}
     <fieldset>

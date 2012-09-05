@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+Add the following key to
+  {% ifequal ssh_target "user" %}
+    your
+  {% else %}
+    <code>{{ ssh_target }}</code>
+  {% endifequal %}
+  authorized keys?
+
+<pre id=key-add-pre>{{ data }}</pre>
+
+<form action="{% url ssh_keys_new ssh_target %}" method=POST class=form-horizontal>
+    {% csrf_token %}
+    <fieldset>
+        <div class="control-group {% if error %}error{% endif %}">
+            <label class="control-label">Name</label>
+            <div class="controls"><input type=text name=name></div>
+        </div>
+
+        <input type=hidden name=data value="{{ data }}">
+
+        <div class="form-actions">
+            <button type=submit class="btn btn-primary">Add</button>
+        </div>
+    </fieldset>
+</form>
+{% endblock %}

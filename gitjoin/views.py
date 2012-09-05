@@ -208,6 +208,16 @@ def ssh_keys_delete(request):
     controller.delete_ssh_key(request.user, id)
     return http.HttpResponseRedirect(reverse('ssh_keys'))
 
+def ssh_keys_new_script(request, ssh_target):
+    data = open(webapp.settings.APP_ROOT + '/gitjoin/add.sh').read()
+    data = data.replace('__URL__', webapp.settings.URL + reverse('ssh_keys_new_script_continue', args=[ssh_target]))
+    return http.HttpResponse(data, content_type='text/plain')
+
+def ssh_keys_new_script_continue(request, ssh_target):
+    return to_template(request, 'ssh_keys_new_script_continue.html', dict(
+            ssh_target=ssh_target,
+            data=request.GET['key']))
+
 def org_new(request):
     error = None
     if request.POST:

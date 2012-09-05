@@ -34,6 +34,8 @@ urlpatterns = patterns('',
     url(r'^settings/ssh$', views.ssh_keys, name='ssh_keys'),
     url(r'^settings/ssh/new/(.+)$', views.ssh_keys_new, name='ssh_keys_new'),
     url(r'^settings/ssh/delete$', views.ssh_keys_delete, name='ssh_keys_delete'),
+    url(r'^settings/ssh/sh/(.*)/add.sh$', views.ssh_keys_new_script, name='ssh_keys_new_script'),
+    url(r'^settings/ssh/sh/(.*)/next$', views.ssh_keys_new_script_continue, name='ssh_keys_new_script_continue'),
 
     url(r'^([^/]+)/([^/]+)/tree/([^/]+)/(.*)$', views.repo_tree, name='repo_tree'),
     url(r'^([^/]+)/([^/]+)/commit/([^/]+)$', views.repo_commit, name='repo_commit'),
