@@ -24,7 +24,7 @@ def main():
     auth_obj, = sys.argv[1:]
     command = os.environ.get('SSH_ORIGINAL_COMMAND', '')
     cmd, _, arg = command.partition(' ')
-    
+
     if cmd in ('git-upload-pack', 'git-receive-pack'):
         args_split = shlex.split(arg)
         if len(args_split) != 1:
@@ -44,7 +44,7 @@ def invoke_command(auth_obj, cmd, repo):
     # really required?
     # with tools.global_lock(), tools.lock('repo_' + path, shared=cmd == 'git-upload-pack'):
     status = subprocess.call((cmd, path))
-    
+
     sys.exit(status)
 
 def get_path_and_permission(auth_obj, cmd, repo):
@@ -54,32 +54,34 @@ def get_path_and_permission(auth_obj, cmd, repo):
     return os.path.expanduser('~/repos/%d' % ident), permission
 
 def gitauth(repo_name, auth, access):
-    auth_type, auth_val = auth.split(':', 1)
-    permission = access
-
     try:
         repo = models.Repo.get_by_name(repo_name)
     except Exception as err:
         raise PermissionDenied(err.message)
 
-    if auth_type == 'user':
-        try:
-            user = models.User.objects.filter(username=auth_val).get()
-        except django.core.exceptions.ObjectDoesNotExist as err:
-            raise PermissionDenied('no such user')
+    permission = None
+    errors = []
+    for key in models.SSHKey.objects.filter(fingerprint=auth):
+        if key.owner:
+            user = key.owner
+            if not repo.is_user_authorized(user, access):
+                errors.append('access denied for user %s' % user.name)
+            else:
+                if access == 'rw' and repo.is_user_authorized(user, 'rwplus'):
+                    permission = 'rwplus'
+                else:
+                    permission = access
+        elif key.target:
+            if key.target == repo:
+                permission = 'rw'
+            else:
+                errors.append('deploy key valid for repository %s' % key.target.get_full_name())
 
-        if not repo.is_user_authorized(user, access):
-            raise PermissionDenied('access denied for user %s' % user.name)
-
-        if access == 'rw' and repo.is_user_authorized(user, 'rwplus'):
-            permission = 'rwplus'
-    elif auth_type == 'repo':
-        if int(auth_val) != repo.id:
-            raise PermissionDenied('deploy key not valid for repository %s' % repo_name)
-        #if access == 'rw':
-        #    permission = 'rwplus'
-    else:
-        raise PermissionDenied('internal error')
+    if not permission:
+        if errors:
+            raise PermissionDenied(', '.join(errors))
+        else:
+            raise PermissionDenied('no keys found (looks like .authorized_keys is out of sync with DB)')
 
     return repo.id, permission
 

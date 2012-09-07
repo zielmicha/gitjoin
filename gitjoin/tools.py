@@ -15,6 +15,7 @@ import zlib
 import sys
 import time
 import atexit
+import hashlib
 
 class lock(object):
     ' exclusive by default '
@@ -22,10 +23,10 @@ class lock(object):
         self.path = os.path.expanduser('~/var/locks/' + quote_path(name))
         self.shared = shared
         self.fd = open(self.path, 'w+')
-    
+
     def __enter__(self):
         fcntl.lockf(self.fd, fcntl.LOCK_SH if self.shared else fcntl.LOCK_EX)
-    
+
     def __exit__(self, *args):
         fcntl.lockf(self.fd, fcntl.LOCK_UN)
 
@@ -52,24 +53,30 @@ def reformat_ssh_key(data):
     split = data.split(None, 2)
     if len(split) < 2:
         raise ValueError('Not enough values in SSH key.')
-    
+
     if len(split) == 2:
         split = split + ['',]
-    
+
     type, value, author = split
-    
+
     if type != 'ssh-rsa':
         raise ValueError('Wrong key type.')
-    
+
     data = value.decode('base64').encode('base64').replace('\n', '')
     author = urllib.quote(author.strip())
-    
+
     return '%s %s %s' % (type, data, author)
+
+def get_ssh_key_fingerprint(data):
+    ' Assumes well-formed SSH key '
+    key = data.split(None, 2)[1]
+    fp_plain = hashlib.md5(key).hexdigest()
+    return ':'.join( a + b for a,b in zip(fp_plain[::2], fp_plain[1::2]) )
 
 def reusable_generator(method):
     def decorator(*args, **kwargs):
         return list(method(*args, **kwargs))
-    
+
     functools.update_wrapper(decorator, method)
     return decorator
 
@@ -180,4 +187,3 @@ if __name__ == '__main__':
     print expensive_comp('../../ble')
     print expensive_comp('../../ble')
     print expensive_comp(3)
-
