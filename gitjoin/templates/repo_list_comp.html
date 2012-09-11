@@ -1,3 +1,4 @@
+{% load gitjoin_extras %}
 <section>
     {% if git_list %}
     <table class="table table-bordered">
@@ -8,7 +9,7 @@
                 <a href="{% url repo_tree repo.holder.name repo.name branch entry.path %}">{{entry.name}}</a></td>
             <td>
                 {% if entry.last_commit %}
-                <a href="{% url repo_commit repo.holder.name repo.name entry.last_commit.hex %}">{{entry.last_commit.message}}</a>
+                <a href="{% url repo_commit repo.holder.name repo.name entry.last_commit.hex %}">{{entry.last_commit.message|shortcommitmsg}}</a>
                 {% endif %}
             </td>
         </tr>
