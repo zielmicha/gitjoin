@@ -48,6 +48,14 @@ def prettydate(time):
     return pretty.date(time)
 
 @register.filter
+def shortcommitmsg(message):
+    message = message.split('\n')[0]
+    if len(message) > 120:
+        message = message[:120]
+        message += '...'
+    return message
+
+@register.filter
 def gitdiff(data):
     return safestring.mark_safe('\n'.join(_gitdiff(data.splitlines())))
 
