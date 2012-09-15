@@ -64,7 +64,7 @@ class Program(object):
     def run(self):
         head = self.repo[self.repo.lookup_reference('HEAD').resolve().oid]
         common_commit, new_commits = self.find_common_commit(head)
-        self.conn.call('set-new-commits!', new_commits)
+        self.conn.call('set-new-commits!', [ (commit.hex, commit.message) for commit in new_commits ])
         self.conn.call('set-root!', common_commit.hex)
         self.uploaded_hashes = self.conn.call('get-hashes')
         common_commit = self.repo[common_commit.oid]
@@ -102,7 +102,10 @@ class Program(object):
         self.uploaded_hashes[path] = hex
 
     def compute_diff(self, path, data):
-        old = self.get_object(path).read_raw()
+        try:
+            old = self.get_object(path).read_raw()
+        except KeyError:
+            old = ''
         return diff(data, old)
 
     def get_object(self, path):
@@ -127,11 +130,7 @@ class Program(object):
 
             new_commits.append(commit)
 
-            # first commit is parent of itself (?)
-            if [ c.hex for c in head.parents ] == [commit.hex]:
-                break
-
-            queue += head.parents
+            queue += commit.parents
 
         raise Exception('searched %d commits up, no common found' % searched)
 
