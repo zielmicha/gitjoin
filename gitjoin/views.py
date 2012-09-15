@@ -20,6 +20,9 @@ from gitjoin import live
 from gitjoin.mysubprocess import check_output
 import os
 
+from django.contrib.auth.decorators import login_required as default_login_required
+login_required = default_login_required(login_url='/global/accounts/login/')
+
 def home(request):
     return to_template(request, 'home.html', dict(
         users=models.User.objects.all(),
@@ -76,6 +79,7 @@ def repo_tree(request, username, repo_name, branch, path):
             path=path,
             git_blob=object.get_data()))
 
+@login_required
 def repo_admin(request, username, repo_name):
     repo = get_repo(request.user, username + '/' + repo_name)
     error = None
@@ -98,6 +102,7 @@ def repo_admin(request, username, repo_name):
         repo=repo,
         has_access=repo.is_user_authorized(request.user, 'rwplus')))
 
+@login_required
 def repo_admin_keys(request, username, repo_name):
     repo = get_repo(request.user, username + '/' + repo_name)
     error = None
@@ -185,6 +190,7 @@ def repo_git_http(request, username, repo_name, path):
         response.status_code = int(headers['Status'].split()[0])
     return response
 
+@login_required
 def new_repo(request):
     error = None
     if request.POST:
@@ -202,12 +208,14 @@ def new_repo(request):
         holders=[ request.user.name ] + [ org.name for org in request.user.organizations.all() ]
     ))
 
+@login_required
 def ssh_keys(request):
     return to_template(request, 'ssh_keys.html', dict(
         keys=models.SSHKey.objects.filter(owner=request.user),
         ssh_target='user',
     ))
 
+@login_required
 def ssh_keys_new(request, target):
     name = request.POST.get('name')
     data = request.POST.get('data')
@@ -217,21 +225,25 @@ def ssh_keys_new(request, target):
     else:
         return http.HttpResponseRedirect(reverse('repo_admin_keys', args=target.split('/', 1)))
 
+@login_required
 def ssh_keys_delete(request):
     id = request.POST.get('id')
     controller.delete_ssh_key(request.user, id)
     return http.HttpResponseRedirect(reverse('ssh_keys'))
 
+@login_required
 def ssh_keys_new_script(request, ssh_target):
     data = open(webapp.settings.APP_ROOT + '/gitjoin/add.sh').read()
     data = data.replace('__URL__', webapp.settings.URL + reverse('ssh_keys_new_script_continue', args=[ssh_target]))
     return http.HttpResponse(data, content_type='text/plain')
 
+@login_required
 def ssh_keys_new_script_continue(request, ssh_target):
     return to_template(request, 'ssh_keys_new_script_continue.html', dict(
             ssh_target=ssh_target,
             data=request.GET['key']))
 
+@login_required
 def org_new(request):
     error = None
     if request.POST:
@@ -245,6 +257,7 @@ def org_new(request):
 
     return to_template(request, 'org_new.html', dict(error=error))
 
+@login_required
 def org_admin(request, name):
     holder = models.RepoHolder.get_by_name(name)
     owners = holder.owners.all() if isinstance(holder, models.Organization) else None
@@ -265,6 +278,7 @@ def org_admin(request, name):
         error=error,
     ))
 
+@login_required
 def org_admin_group(request, name, group_name):
     if group_name == 'owners':
         return http.HttpResponseRedirect(reverse('org_admin', args=[name]))
@@ -295,6 +309,7 @@ def org_admin_group(request, name, group_name):
         error=error,
     ))
 
+@login_required
 def org_admin_group_new(request, name):
     holder = models.RepoHolder.get_by_name(name)
     error = None

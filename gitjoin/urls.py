@@ -18,8 +18,8 @@ admin.autodiscover()
 urlpatterns = patterns('',
     #xurl(r'^global/gitauth', views.gitauth),
 
-    url(r'^global/accounts/login/$', login, ), #{'template_name': 'login.html'}
-    url(r'^global/accounts/logout/$', logout, ), #{'template_name': 'logout.html'}
+    url(r'^global/accounts/login/$', login, ),
+    url(r'^global/accounts/logout/$', logout, ),
     #url(r'^accounts/profile/$', redirect_to, {'url': '/'}),
     url(r'global/admin$', lambda req: http.HttpResponseRedirect('/global/admin/')),
     url(r'^global/admin/doc/', include('django.contrib.admindocs.urls')),
