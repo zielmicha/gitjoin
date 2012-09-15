@@ -1,0 +1,12 @@
+{% extends "repo_base.html" %}
+{% block repocontent %}
+<header>
+    <h2>Live view for user <a href="{% url user username %}">{{ username }}</a></h2>
+</header>
+<section>
+{% for name, value in files %}
+<h2>{{ name }}</h2>
+<pre class="prettyprint linenums">{{ value }}</pre>
+{% endfor %}
+</section>
+{% endblock %}

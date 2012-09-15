@@ -12,11 +12,13 @@ from django.views.generic.simple import direct_to_template
 from django.core.urlresolvers import reverse
 import django.core.exceptions
 import webapp.settings
-import models
-import controller
-import git
-import tools
-from mysubprocess import check_output
+from gitjoin import models
+from gitjoin import controller
+from gitjoin import git
+from gitjoin import tools
+from gitjoin import live
+from gitjoin.mysubprocess import check_output
+import os
 
 def home(request):
     return to_template(request, 'home.html', dict(
@@ -151,6 +153,18 @@ def repo_branches(request, username, repo_name):
     return to_template(request, 'repo_branches.html', dict(
         repo=repo,
         git_branches=grepo.list_branches()))
+
+def live_main(request, username, repo_name, live_user):
+    repo = get_repo(request.user, username + '/' + repo_name)
+    l = get_live(repo, live_user)
+    return to_template(request, 'live_main.html', dict(
+        repo=repo,
+        username=username,
+        files=l.get_files()))
+
+def get_live(repo, username):
+    user = models.User.objects.get(name=username)
+    return live.LiveServer(repo.id, os.path.expanduser('~/repos/%d' % repo.id), user)
 
 @csrf_exempt
 def repo_git_http(request, username, repo_name, path):

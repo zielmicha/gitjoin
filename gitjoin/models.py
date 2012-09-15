@@ -229,6 +229,17 @@ class SSHKey(models.Model):
     def __unicode__(self):
         return u'SSHKey %s, owner: %s' % (self.name, self.owner)
 
+class LiveData(models.Model):
+    repo = models.ForeignKey(Repo)
+    user = models.ForeignKey(User)
+
+    class Meta:
+        verbose_name = "Live data"
+        verbose_name_plural = "Live data"
+
+    def __unicode__(self):
+        return u'LiveData %s, %s' % (self.repo, self.user)
+
 admin.site.register(Repo)
 admin.site.register(RepoAlias)
 admin.site.register(User)
@@ -236,3 +247,4 @@ admin.site.register(PrivilegeOwner)
 admin.site.register(SSHKey)
 admin.site.register(Organization)
 admin.site.register(Group)
+admin.site.register(LiveData)

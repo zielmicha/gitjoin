@@ -8,6 +8,7 @@
 
 import sys
 
+sys.real_stdout = sys.stdout
 sys.stdout = sys.stderr # but do not redirect native stdout
 
 import os
@@ -16,7 +17,7 @@ import subprocess
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'webapp.settings'
 
-from gitjoin import models
+from gitjoin import models, live
 
 import tools
 
@@ -25,33 +26,34 @@ def main():
     command = os.environ.get('SSH_ORIGINAL_COMMAND', '')
     cmd, _, arg = command.partition(' ')
 
-    if cmd in ('git-upload-pack', 'git-receive-pack'):
+    if cmd in ('git-upload-pack', 'git-receive-pack', 'gitjoin-live'):
         args_split = shlex.split(arg)
         if len(args_split) != 1:
             sys.exit('Unexpected number of arguments: %s' % len(args_split))
-        repo = args_split[0]
-        invoke_command(auth_obj, cmd, repo)
+        invoke_command(auth_obj, cmd, args_split)
     else:
         sys.exit('Expected git-upload-pack or git-receive-pack, got %s instead.' % (cmd or 'nothing'))
 
-def invoke_command(auth_obj, cmd, repo):
+def invoke_command(auth_obj, cmd, args):
+    repo_name = args[0]
     try:
-        path, permission = get_path_and_permission(auth_obj, cmd, repo)
+        repo_id, permission, user = get_repo_and_permission_and_user(auth_obj, cmd, repo_name)
     except PermissionDenied as err:
         sys.exit('Cannot access repository %s: %s' % (repo, err.message))
 
-    os.environ['GIT_PERMISSION'] = permission
-    # really required?
-    # with tools.global_lock(), tools.lock('repo_' + path, shared=cmd == 'git-upload-pack'):
-    status = subprocess.call((cmd, path))
+    path = os.path.expanduser('~/repos/%d' % repo_id)
+    if cmd == 'gitjoin-live':
+        live.main(repo_id, path, user)
+    else:
+        os.environ['GIT_PERMISSION'] = permission
+        status = subprocess.call((cmd, path))
+        sys.exit(status)
 
-    sys.exit(status)
+def get_repo_and_permission_and_user(auth_obj, cmd, repo):
+    access = {'git-upload-pack': 'ro', 'git-receive-pack': 'rw', 'gitjoin-live': 'rw'}[cmd]
 
-def get_path_and_permission(auth_obj, cmd, repo):
-    access = {'git-upload-pack': 'ro', 'git-receive-pack': 'rw'}[cmd]
-
-    ident, permission = gitauth(repo_name=repo, auth=auth_obj, access=access)
-    return os.path.expanduser('~/repos/%d' % ident), permission
+    ident, permission, user = gitauth(repo_name=repo, auth=auth_obj, access=access)
+    return ident, permission, user
 
 def gitauth(repo_name, auth, access):
     try:
@@ -61,6 +63,7 @@ def gitauth(repo_name, auth, access):
 
     permission = None
     errors = []
+    user = None
     for key in models.SSHKey.objects.filter(fingerprint=auth):
         if key.owner:
             user = key.owner
@@ -83,7 +86,7 @@ def gitauth(repo_name, auth, access):
         else:
             raise PermissionDenied('no keys found (looks like .authorized_keys is out of sync with DB)')
 
-    return repo.id, permission
+    return repo.id, permission, user
 
 class PermissionDenied(Exception): pass
 

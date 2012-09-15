@@ -25,7 +25,7 @@ class Repo(object):
     @staticmethod
     def from_model(model):
         return Repo(os.path.expanduser('~/repos/%d' % model.id))
-    
+
     def list(self, path='', **kwargs):
         return self.get_head().list(path, **kwargs)
 
@@ -74,7 +74,7 @@ class Commit(object):
 
     def list(self, path, **kwargs):
         return self.get_tree(path).list(**kwargs)
-    
+
     def get_tree(self, path):
         tree = self.obj.tree
         for name in path.split('/'):
@@ -189,6 +189,17 @@ class Object(object):
             last_commit = commit_info.get(obj.name)
             yield Entry(name=obj.name, path=self.path + (self.path and '/') + obj.name, type=type,
                 last_commit=Commit(self.repo, self.repo[last_commit.decode('hex')]) if last_commit else None)
+
+    @tools.reusable_generator
+    def list_recursive(self):
+        for entry in self.obj:
+            name = entry.name
+            obj = self.repo[self.obj[name].oid]
+            if isinstance(obj, pygit2.Tree):
+                for child_name, obj in Object(self.repo, self.path, obj).list_recursive():
+                    yield ((name + '/' if name else '') + child_name, obj)
+            else:
+                yield name, obj
 
     def is_directory(self):
         return isinstance(self.obj, pygit2.Tree)

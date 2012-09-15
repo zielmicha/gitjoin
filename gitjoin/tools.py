@@ -106,6 +106,16 @@ class FSCache:
         else:
             return marshal.loads(zlib.decompress(data))
 
+    def clear(self):
+        for i in os.listdir(self.path):
+            try:
+                os.remove(os.path.join(self.path, i))
+            except OSError:
+                pass
+
+    def keys(self):
+        return [ urllib.unquote(name) for name in os.listdir(self.path) ]
+
 class KyotoCache:
     def __init__(self, path):
         self.path = path
