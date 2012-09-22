@@ -90,8 +90,11 @@ def repo_admin(request, username, repo_name):
         rw = request.POST.get('rw').split()
         rwplus = request.POST.get('rwplus').split()
         public = bool(request.POST.get('public'))
+        description = request.POST.get('description')
         try:
-            controller.edit_repo(request.user, repo, name, public=public, ro=ro, rw=rw, rwplus=rwplus)
+            controller.edit_repo(request.user, repo, name,
+                                 description=description,
+                                 public=public, ro=ro, rw=rw, rwplus=rwplus)
         except controller.Error as err:
             error = err.message
         else:

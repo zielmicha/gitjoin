@@ -48,6 +48,7 @@ class Repo(models.Model):
             self.holding_org = val
 
     name = models.CharField(max_length=50)
+    description = models.TextField(default='')
     public = models.BooleanField()
 
     class Meta:

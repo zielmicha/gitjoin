@@ -1,6 +1,14 @@
 {% extends "repo_base.html" %}
 {% block repocontent %}
+<div class=repoinfo>
+<div class=description>
+{% if repo.description %}
+  {{ repo.description }}
+{% else %}
+  <span class=empty>No description yet.</span>
+{% endif %}
+</div>
 <pre>git clone {{ settings.USERNAME }}@{{ settings.HOSTNAME }}:{{ repo.holder.name }}/{{ repo.name }}{% if repo.public %}
-git clone {{ settings.URL }}{% url repo_git_http repo.holder.name repo.name '' %}{% endif %}</pre>
+git clone {{ settings.URL }}{% url repo_git_http repo.holder.name repo.name '' %}{% endif %}</pre></div>
 {% include "repo_list_comp.html" %}
 {% endblock %}

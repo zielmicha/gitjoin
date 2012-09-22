@@ -16,6 +16,7 @@
 .rightcol {
     display: inline-block;
     margin-left: 2em;
+    min-height: 25em;
 }
 .usertitle {
     font-size: 1.7em;
@@ -26,4 +27,45 @@
     padding-top: 1em;
     padding-left: 1em;
     font-size: 1.3em;
+}
+ul.repos {
+    list-style-type: none;
+    font-size: 1.3em;
+}
+ul.repos li {
+    margin-bottom: 0.7em;
+}
+ul.repos .rest {
+    display: inline-block;
+    margin-left: 0.3em;
+}
+ul.repos .icon-book {
+    float: left;
+    margin-top: 0.1em;
+}
+ul.repos a {
+
+}
+ul.repos .descr {
+    display: block;
+    margin-left: 0em;
+}
+.empty {
+    color: #bbb;
+    font-style: italic;
+}
+.repoinfo {
+    border: 1px solid #eee;
+    border-radius: 0.5em;
+    margin-top: 0.3em;
+    margin-bottom: 0.9em;
+}
+.repoinfo .description {
+    margin-top: 0.5em;
+    margin-left: 0.7em;
+    margin-bottom: 0.5em;
+    font-size: 1.2em;
+}
+.repoinfo pre {
+    margin: 0;
 }

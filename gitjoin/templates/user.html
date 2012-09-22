@@ -16,9 +16,20 @@
 </div>
 <div class=rightcol>
 <h3>Repositories</h3>
-<ul>
+<ul class=repos>
 {% for repo in repos %}
-   <li><a href="{% url repo object.name repo.name %}">{{ repo.name }}</a>
+   <li>
+     <i class="icon-book"></i>
+     <div class=rest>
+       <a href="{% url repo object.name repo.name %}">{{ repo.name }}</a>
+       <span class="descr">
+         {% if repo.description %}
+           {{ repo.description }}
+         {% else %}
+           <span class=empty>No description yet.</span>
+         {% endif %}
+       </span>
+     </div>
 {% endfor %}
 </ul>
 
@@ -40,6 +51,7 @@
 </ul>
 {% endif %}
 
+{% comment %}
 {% if accessible_repos %}
     <h3>Accessible repositories</h3>
     <ul>
@@ -47,6 +59,7 @@
         <li><a href="{% url repo repo.holder.name repo.name %}">{{ repo.holder.name }}/{{ repo.name }}</a>
     {% endfor %}
 {% endif %}
+{% endcomment %}
 </div>
 </div>
 {% endblock %}

@@ -55,7 +55,7 @@ def init_repo(repo):
     repo = git.Repo(path)
     hooks.regenerate_hooks(repo)
 
-def edit_repo(user, repo, name, public, ro, rw, rwplus):
+def edit_repo(user, repo, name, description, public, ro, rw, rwplus):
     def _edit_list(category, new):
         entries = list(models.PrivilegeOwner.get_privileged(repo, category + '_repos'))
         if not new:
@@ -86,6 +86,7 @@ def edit_repo(user, repo, name, public, ro, rw, rwplus):
     check_ident(name)
     repo.name = name
     repo.public = public
+    repo.description = description
 
     _propagate(rw, rwplus)
     _propagate(ro, rw)
