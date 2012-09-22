@@ -1,6 +1,20 @@
 {% extends "org_base.html" %}
 {% load gitjoin_extras %}
 {% block orgcontent %}
+<div class=columns>
+<div class=leftcol>
+    <img src="/static/placeholder.png" class=userimg>
+    <div class=userdata>
+      {% if owners %}
+      Organization
+      {% else %}
+      User
+      {% endif %}
+      <div class=usertitle>{{ object.name }}</div>
+      <hr>
+    </div>
+</div>
+<div class=rightcol>
 <h3>Repositories</h3>
 <ul>
 {% for repo in repos %}
@@ -33,5 +47,6 @@
         <li><a href="{% url repo repo.holder.name repo.name %}">{{ repo.holder.name }}/{{ repo.name }}</a>
     {% endfor %}
 {% endif %}
-
+</div>
+</div>
 {% endblock %}

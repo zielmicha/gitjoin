@@ -4,3 +4,26 @@
 #key-add-pre {
     margin: 1em 0em;
 }
+.leftcol {
+    float: left;
+    display: inline-block;
+}
+.userimg {
+    width: 15em;
+    padding: 0.3em;
+    border: 1px solid #ddd;
+}
+.rightcol {
+    display: inline-block;
+    margin-left: 2em;
+}
+.usertitle {
+    font-size: 1.7em;
+    font-weight: bold;
+    margin-top: 0.1em;
+}
+.userdata {
+    padding-top: 1em;
+    padding-left: 1em;
+    font-size: 1.3em;
+}
