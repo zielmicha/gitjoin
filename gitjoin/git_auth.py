@@ -39,7 +39,7 @@ def invoke_command(auth_obj, cmd, args):
     try:
         repo_id, permission, user = get_repo_and_permission_and_user(auth_obj, cmd, repo_name)
     except PermissionDenied as err:
-        sys.exit('Cannot access repository %s: %s' % (repo, err.message))
+        sys.exit('Cannot access repository %s: %s' % (repo_name, err.message))
 
     path = os.path.expanduser('~/repos/%d' % repo_id)
     if cmd == 'gitjoin-live':

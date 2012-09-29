@@ -167,7 +167,7 @@ def live_main(request, username, repo_name, live_user):
     l = get_live(repo, live_user)
     return to_template(request, 'live_main.html', dict(
         repo=repo,
-        username=username,
+        username=live_user,
         files=l.get_files()))
 
 def get_live(repo, username):
@@ -234,7 +234,6 @@ def ssh_keys_delete(request):
     controller.delete_ssh_key(request.user, id)
     return http.HttpResponseRedirect(reverse('ssh_keys'))
 
-@login_required
 def ssh_keys_new_script(request, ssh_target):
     data = open(webapp.settings.APP_ROOT + '/gitjoin/add.sh').read()
     data = data.replace('__URL__', webapp.settings.URL + reverse('ssh_keys_new_script_continue', args=[ssh_target]))
