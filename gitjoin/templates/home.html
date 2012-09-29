@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
 <h3>Users</h3>
-<ul>
+<ul class=userlist>
 {% for user in users %}
-    <li><a href="{% url user user.name %}">{{ user.name }}</a></li>
+    <li><i class=icon-user></i><a href="{% url user user.name %}">{{ user.name }}</a></li>
 {% endfor %}
 </ul>
 <h3>Organizations</h3>
-<ul>
+<ul class=userlist>
     {% for org in orgs %}
-    <li><a href="{% url user org.name %}">{{ org.name }}</a></li>
+    <li><i class=icon-lock></i><a href="{% url user org.name %}">{{ org.name }}</a></li>
     {% endfor %}
 </ul>
 {% if user.is_staff %}

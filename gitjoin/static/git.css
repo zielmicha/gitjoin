@@ -69,3 +69,14 @@ ul.repos .descr {
 .repoinfo pre {
     margin: 0;
 }
+.userlist {
+    list-style-type: none;
+    margin-left: 0.5em;
+}
+.userlist i {
+    display: inline-block;
+    margin-right: 0.5em;
+}
+.userlist li {
+    margin-bottom: 0.3em;
+}
