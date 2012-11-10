@@ -93,25 +93,6 @@ TEMPLATE_LOADERS = (
 #     'django.template.loaders.eggs.Loader',
 )
 
-try:
-    import django_cas
-except ImportError:
-    HAS_CAS = False
-else:
-    HAS_CAS = True
-
-MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    ) + (('django_cas.middleware.CASMiddleware',) if HAS_CAS else ()) + (
-    'django.middleware.doc.XViewMiddleware',
-    'django.middleware.transaction.TransactionMiddleware',
-)
-
 ROOT_URLCONF = 'webapp.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
@@ -165,6 +146,20 @@ LOGGING = {
 }
 
 execfile(os.path.expanduser('~/config.py'))
+
+HAS_CAS = 'CAS_SERVER_URL' in globals()
+
+MIDDLEWARE_CLASSES = (
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    ) + (('django_cas.middleware.CASMiddleware',) if HAS_CAS else ()) + (
+    'django.middleware.doc.XViewMiddleware',
+    'django.middleware.transaction.TransactionMiddleware',
+)
 
 URL = URL.rstrip('/')
 

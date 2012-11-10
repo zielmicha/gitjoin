@@ -7,6 +7,7 @@
 
 from gitjoin.models import User, Group
 from webapp.settings import SUPERUSERS
+from django.contrib.auth import models as authmodels
 
 import pam
 import pwd
@@ -24,20 +25,20 @@ class VLOBackend(object):
 
     def _authenticate(self, *args, **kwargs):
         username = self.check_auth(*args, **kwargs)
-        
+
         if not username:
             return None
-        
+
         username = username.strip().lower()
-        
+
         if username.endswith('_admin'):
             # redirect *_admin accounts to normal accounts
             username = username[:-len('_admin')]
             if username not in SUPERUSERS:
                 raise Exception('You are not expected to be admin')
-        
+
         email = username + '@v-lo.krakow.pl'
-        
+
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
@@ -45,28 +46,28 @@ class VLOBackend(object):
             user.name = username
             user.set_unusable_password()
             user.save()
-        
+
         group_name, first_name, last_name = get_name_and_group(username)
-        
+
         if group_name:
             group_name = group_name.strip().replace(' ', '-').lower()
             group, was_created = Group.objects.get_or_create(name=group_name)
-        
+
             if group not in user.git_groups.all():
                 user.git_groups.add(group)
                 user.save()
-        
+
         if (username in SUPERUSERS) != user.is_superuser or user.is_superuser != user.is_staff:
             user.is_staff = user.is_superuser = (username in SUPERUSERS)
             user.save()
-        
+
         if (user.first_name, user.last_name) != (first_name, last_name):
             user.first_name = first_name
             user.last_name = last_name
             user.save()
 
         print 'ok, return', user
-        
+
         return user
 
     def get_user(self, user_id):
@@ -80,7 +81,16 @@ class PAMBackend(VLOBackend):
         if pam.authenticate(username, password):
             return username
 
-from django_cas.backends import _verify as cas_verify
+
+class DjangoBackend(VLOBackend):
+    def check_auth(self, username, password):
+        if authmodels.User.objects.get(username=username).check_password(password):
+            return username
+
+try:
+    from django_cas.backends import _verify as cas_verify
+except ImportError:
+    pass
 
 class CASBackend(VLOBackend):
     def check_auth(self, ticket, service):

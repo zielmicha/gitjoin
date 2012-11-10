@@ -12,6 +12,7 @@ from django import http
 
 import gitjoin.models
 from gitjoin import views
+from webapp import settings
 
 admin.autodiscover()
 
@@ -20,8 +21,8 @@ urlpatterns = patterns('',
 
     url(r'^global/accounts/login/$', login, ),
     url(r'^global/accounts/logout/$', logout, ),
-    #url(r'^accounts/profile/$', redirect_to, {'url': '/'}),
-    url(r'global/admin$', lambda req: http.HttpResponseRedirect('/global/admin/')),
+    url(r'^accounts/profile/$', lambda req: http.HttpResponseRedirect('/')),
+    url(r'global/admin$' if not settings.HAS_CAS else '$^', lambda req: http.HttpResponseRedirect('/global/admin/')),
     url(r'^global/admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^global/admin/', include(admin.site.urls)),
 
