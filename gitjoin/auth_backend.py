@@ -42,28 +42,32 @@ class VLOBackend(object):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            user = User(username=username, email=email, password='')
+            user = User(username=username, email=email)
             user.name = username
-            user.set_unusable_password()
+            if self.keep_django_details:
+                user.set_password(self.get_user_password(*args, **kwargs))
+            else:
+                user.set_unusable_password()
             user.save()
 
-        group_name, first_name, last_name = get_name_and_group(username)
+        if not self.keep_django_details:
+            group_name, first_name, last_name = get_name_and_group(username)
 
-        if group_name:
-            group_name = group_name.strip().replace(' ', '-').lower()
-            group, was_created = Group.objects.get_or_create(name=group_name)
+            if group_name:
+                group_name = group_name.strip().replace(' ', '-').lower()
+                group, was_created = Group.objects.get_or_create(name=group_name)
 
-            if group not in user.git_groups.all():
-                user.git_groups.add(group)
+                if group not in user.git_groups.all():
+                    user.git_groups.add(group)
+                    user.save()
+
+            if (user.first_name, user.last_name) != (first_name, last_name):
+                user.first_name = first_name
+                user.last_name = last_name
                 user.save()
 
         if (username in SUPERUSERS) != user.is_superuser or user.is_superuser != user.is_staff:
             user.is_staff = user.is_superuser = (username in SUPERUSERS)
-            user.save()
-
-        if (user.first_name, user.last_name) != (first_name, last_name):
-            user.first_name = first_name
-            user.last_name = last_name
             user.save()
 
         print 'ok, return', user
@@ -76,6 +80,8 @@ class VLOBackend(object):
         except User.DoesNotExist:
             return None
 
+    keep_django_details = False
+
 class PAMBackend(VLOBackend):
     def check_auth(self, username, password):
         if pam.authenticate(username, password):
@@ -86,6 +92,11 @@ class DjangoBackend(VLOBackend):
     def check_auth(self, username, password):
         if authmodels.User.objects.get(username=username).check_password(password):
             return username
+
+    def get_user_password(self, username, password):
+        return password
+
+    keep_django_details = True
 
 try:
     from django_cas.backends import _verify as cas_verify
