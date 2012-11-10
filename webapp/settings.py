@@ -72,7 +72,7 @@ STATIC_URL = '/static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
-    
+
 )
 
 # List of finder classes that know how to find static files in
@@ -93,6 +93,13 @@ TEMPLATE_LOADERS = (
 #     'django.template.loaders.eggs.Loader',
 )
 
+try:
+    import django_cas
+except ImportError:
+    HAS_CAS = False
+else:
+    HAS_CAS = True
+
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -100,7 +107,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_cas.middleware.CASMiddleware',
+    ) + (('django_cas.middleware.CASMiddleware',) if HAS_CAS else ()) + (
     'django.middleware.doc.XViewMiddleware',
     'django.middleware.transaction.TransactionMiddleware',
 )
@@ -127,13 +134,6 @@ INSTALLED_APPS = (
     'django_evolution',
     'django_extensions',
 )
-
-AUTHENTICATION_BACKENDS = (
-    #'django.contrib.auth.backends.ModelBackend',
-    'gitjoin.auth_backend.CASBackend',
-    # albo 'webapp.auth_backend.PAMBackend'
-)
-CAS_SERVER_URL = 'https://webauth.v-lo.krakow.pl/'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
