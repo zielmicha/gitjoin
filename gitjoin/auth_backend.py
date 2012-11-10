@@ -97,7 +97,10 @@ class CASBackend(VLOBackend):
         return cas_verify(ticket, service)
 
 def get_name_and_group(login_name):
-    gecos = pwd.getpwnam(login_name).pw_gecos
+    try:
+        gecos = pwd.getpwnam(login_name).pw_gecos
+    except KeyError:
+        return '', '', ''
     name = gecos.split(',')[0].decode('utf8')
     if gecos.count(',') >= 2:
         group = gecos.split(',')[2].decode('utf8')
