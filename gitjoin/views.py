@@ -17,6 +17,7 @@ from gitjoin import controller
 from gitjoin import git
 from gitjoin import tools
 from gitjoin import live
+from gitjoin import hooks
 from gitjoin.mysubprocess import check_output
 import os
 
@@ -116,6 +117,53 @@ def repo_admin_keys(request, username, repo_name):
         ssh_target=username + '/' + repo_name,
         keys=models.SSHKey.objects.filter(target=repo),
         has_access=repo.is_user_authorized(request.user, 'rwplus')))
+
+@login_required
+def repo_admin_hooks(request, username, repo_name):
+    repo = get_repo(request.user, username + '/' + repo_name)
+    error = None
+
+    hook_id = request.GET.get('id')
+    hook = None
+    if hook_id:
+        hook = models.Hook.objects.get(id=int(request.GET.get('id')))
+        if hook.repo != repo:
+            raise PermissionDenied
+        hook_type = hooks.UserHook.get(hook.type_name)
+
+    return to_template(request, 'repo_admin_hooks.html', dict(
+        error=error,
+        repo=repo,
+        hooks=repo.hooks.all(),
+        parameters=hook_type.get_parameters(hook) if hook else None,
+        hook_type=hook_type if hook else None,
+        hook=hook,
+        hook_types=hooks.UserHook.get_types(),
+        has_access=repo.is_user_authorized(request.user, 'rwplus')))
+
+@login_required
+def repo_admin_hooks_new(request, username, repo_name):
+    name = request.POST.get('name')
+    type = request.POST.get('type')
+    repo = get_repo(request.user, username + '/' + repo_name)
+    id = controller.add_hook(request.user, repo, name, type)
+    return http.HttpResponseRedirect(reverse('repo_admin_hooks', args=[username, repo_name]) + '?id=' + str(id))
+
+@login_required
+def repo_admin_hooks_edit(request, username, repo_name):
+    name = request.POST.get('name')
+    id = int(request.POST.get('id'))
+    repo = get_repo(request.user, username + '/' + repo_name)
+
+    if request.POST.get('action') == 'delete':
+        controller.delete_hook(request.user, repo, id=id)
+        return http.HttpResponseRedirect(reverse('repo_admin_hooks', args=[username, repo_name]))
+    else:
+        enabled = bool(request.POST.get('enabled'))
+        parameters = dict( (k[2:], v) for k, v in request.POST.items() if k.startswith('p_') )
+
+        controller.edit_hook(request.user, repo, name=name, id=id, enabled=enabled, parameters=parameters)
+        return http.HttpResponseRedirect(reverse('repo_admin_hooks', args=[username, repo_name]) + '?id=' + str(id))
 
 def repo_commits(request, username, repo_name, branch):
     repo = get_repo(request.user, username + '/' + repo_name)

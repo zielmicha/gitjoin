@@ -5,12 +5,13 @@
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-import models
-import authorized_keys
-import hooks
-import git
+from gitjoin import models
+from gitjoin import authorized_keys
+from gitjoin import hooks
+from gitjoin import git
 import os
 import re
+import json
 
 from django.db import IntegrityError
 
@@ -187,3 +188,26 @@ def new_group(user, org, name):
     if not was_created:
         raise Error('Group named %s already exists.' % name)
     group.save()
+
+def add_hook(user, repo, name, type_name):
+    repo.check_user_authorized(user, 'rwplus')
+    hook = models.Hook(repo=repo, name=name, type_name=type_name, parameters='{}')
+    hook.save()
+    return hook.id
+
+def edit_hook(user, repo, name, id, enabled, parameters):
+    repo.check_user_authorized(user, 'rwplus')
+    hook = models.Hook.objects.get(id=id)
+    if hook.repo != repo:
+        raise PermissionDenied
+    hook.enabled = enabled
+    hook.name = name
+    hook.parameters = json.dumps(parameters)
+    hook.save()
+
+def delete_hook(user, repo, id):
+    repo.check_user_authorized(user, 'rwplus')
+    hook = models.Hook.objects.get(id=id)
+    if hook.repo != repo:
+        raise PermissionDenied
+    hook.delete()

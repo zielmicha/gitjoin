@@ -8,6 +8,7 @@
 import os
 import sys
 import itertools
+import json
 
 import models
 import git
@@ -58,6 +59,49 @@ def run_hook(path, permission, name, args):
     if name == 'update':
         ref, old, new = args
         hook_update(repo, permission, ref, old, new)
+
+class UserHook:
+    @staticmethod
+    def get(name, _safe=False):
+        if not _safe and name not in UserHook.get_names():
+            return NullHook()
+        self = UserHook()
+        self.config = json.load(open(os.path.expanduser('~/hooks/%s.hook' % name)))
+        self.parameters = self.config['parameters']
+        self.human_name = self.config['name']
+        self.name = name
+        self.is_null = False
+        return self
+
+    def get_parameters(self, model):
+        values = json.loads(model.parameters)
+        result = []
+        for definition in self.parameters:
+            final = definition.copy()
+            final['value'] = values.get(definition['id'])
+            result.append(final)
+        return result
+
+    @staticmethod
+    def get_names():
+        try:
+            hooks = json.load(open(os.path.expanduser('~/enabled_hooks')))
+            return hooks['allowed']
+        except IOError:
+            return []
+
+    @staticmethod
+    def get_types():
+        return [ UserHook.get(name, _safe=True) for name in UserHook.get_names() ]
+
+class NullHook:
+    def __init__(self):
+        self.is_null = True
+        self.name = 'null'
+        self.human_name = 'This hook type has been disabled by administrator'
+
+    def get_parameters(self, model):
+        return {}
 
 def hook_update(repo, permission, ref, old, new):
     print 'counting commits...',

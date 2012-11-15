@@ -80,3 +80,7 @@ ul.repos .descr {
 .userlist li {
     margin-bottom: 0.3em;
 }
+.hooksleft {
+    float: left;
+    margin-right: 1.5em;
+}

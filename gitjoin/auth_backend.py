@@ -21,7 +21,7 @@ class VLOBackend(object):
         except Exception as ex:
             # django doesn't show stack traces from auth backend
             traceback.print_exc()
-            raise ex
+            raise
 
     def _authenticate(self, *args, **kwargs):
         username = self.check_auth(*args, **kwargs)

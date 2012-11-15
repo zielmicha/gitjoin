@@ -1,0 +1,86 @@
+{% extends "repo_admin_base.html" %}
+{% block repoadmincontent %}
+{% load gitjoin_extras %}
+
+{% if hook_types %}
+
+<form action="{% url repo_admin_hooks_new repo.holder.name repo.name %}" method=POST class=form-horizontal>
+  {% csrf_token %}
+  <h3>Add hook</h3>
+  <fieldset>
+        <div class="control-group {% if error %}error{% endif %}">
+            <label class="control-label">Name</label>
+            <div class="controls"><input type=text name=name></div>
+        </div>
+        <div class="control-group {% if error %}error{% endif %}">
+            <label class="control-label">Type</label>
+            <div class="controls">
+              <select name=type>
+                {% for hook in hook_types %}
+                <option value="{{ hook.name }}">{{ hook.human_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type=submit class="btn btn-primary">Add</button>
+        </div>
+    </fieldset>
+</form>
+
+{% if hooks %}
+<div {% if hook %}class=hooksleft{% endif %}>
+  <h3>Configured hooks</h3>
+  <ul>
+    {% for hook in hooks %}
+    <li><a href="?id={{ hook.id }}">Hook {{ hook.name }} [type: {{ hook.type_name }}{% if not hook.enabled %}, disabled{% endif %}]</a>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% if hook %}
+
+<form action="{% url repo_admin_hooks_edit repo.holder.name repo.name %}" method=POST class=form-horizontal>
+  {% csrf_token %}
+  <h3>Hook {{ hook.name }} [type: {{ hook_type.human_name }}]</h3>
+  <input type=hidden name=id value="{{ hook.id }}">
+  <fieldset>
+        <div class="control-group {% if error %}error{% endif %}">
+            <label class="control-label">Name</label>
+            <div class="controls"><input type=text name=name value="{{ hook.name }}"></div>
+        </div>
+        <div class="control-group {% if error %}error{% endif %}">
+            <label class="control-label">Enabled</label>
+            <div class="controls">
+              <input type=checkbox name=enabled {% if hook.enabled %} checked {% endif %}>
+            </div>
+        </div>
+        {% for param in parameters %}
+        <div class="control-group {% if error %}error{% endif %}">
+            <label class="control-label">{{ param.name }}</label>
+            <div class="controls">
+              {% ifequal param.type "bool" %}
+              <input type=checkbox name="p_{{ param.id }}" {% if param.value %}checked{% endif %}>
+              {% else %}
+              <input type=text name="p_{{ param.id }}" value="{% if param.value %}{{ param.value }}{% endif %}">
+              {% endifequal %}
+              {{ param.help }}
+            </div>
+        </div>
+        {% endfor %}
+        <div class="form-actions">
+            <button type=submit class="btn btn-primary">Save</button>
+            <button type=submit name=action value=delete class="btn btn-danger">Delete</button>
+        </div>
+    </fieldset>
+</form>
+
+{% endif %}
+
+{% else %}
+<h3>Hooks are disabled</h3>
+Git hooks are executed in gitjoin user context. To prevent abuse they are disabled by default.
+{% endif %}
+
+{% endblock %}

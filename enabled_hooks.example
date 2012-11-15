@@ -1,0 +1,4 @@
+{
+    "allowed": ["fetch_url", "redmine"],
+    "allowed_for_superusers": []
+}

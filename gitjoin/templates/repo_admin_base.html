@@ -3,7 +3,7 @@
 <ul class="nav nav-tabs">
     <li><a href="{% url repo_admin repo.holder.name repo.name %}">Basic</a></li>
     <li><a href="{% url repo_admin_keys repo.holder.name repo.name %}">Deploy keys</a></li>
-    <li><a href="{% url repo_admin repo.holder.name repo.name %}">Hooks</a></li>
+    <li><a href="{% url repo_admin_hooks repo.holder.name repo.name %}">Hooks</a></li>
 </ul>
 
 {% if not has_access %}

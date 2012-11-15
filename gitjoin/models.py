@@ -241,6 +241,13 @@ class LiveData(models.Model):
     def __unicode__(self):
         return u'LiveData %s, %s' % (self.repo, self.user)
 
+class Hook(models.Model):
+    repo = models.ForeignKey(Repo, related_name='hooks')
+    enabled = models.BooleanField(default=False)
+    name = models.CharField(max_length=50)
+    type_name = models.CharField(max_length=50)
+    parameters = models.TextField() # json encoded
+
 admin.site.register(Repo)
 admin.site.register(RepoAlias)
 admin.site.register(User)
@@ -249,3 +256,4 @@ admin.site.register(SSHKey)
 admin.site.register(Organization)
 admin.site.register(Group)
 admin.site.register(LiveData)
+admin.site.register(Hook)
