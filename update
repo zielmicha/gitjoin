@@ -95,7 +95,11 @@ check_cmd realpath
 
 export DJANGO_SETTINGS_MODULE=webapp.settings
 
-cp -a gitjoin/ webapp/ *.py ~ || exit 1
+if [ ! -e ~/hooks ]; then
+    mkdir ~/hooks
+fi
+cp -a gitjoin/ webapp/ *.py enabled_hooks.example ~ || exit 1
+cp hooks/* ~/hooks/ || exit 1
 echo Syncing DB...
 ~/manage.py syncdb --noinput
 ~/manage.py evolve --noinput --hint -x || exit 1
