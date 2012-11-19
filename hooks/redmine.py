@@ -11,7 +11,6 @@ url = 'http://%s/sys/fetch_changesets?%s' % (
     urllib.quote(hostname),
     urllib.urlencode(params)
 )
-print repr(url)
 print 'Notyfing Redmine at %r about changes...' % hostname,
 sys.stdout.flush()
 code = urllib.urlopen(url).getcode()
