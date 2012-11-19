@@ -22,7 +22,7 @@ urlpatterns = patterns('',
     url(r'^global/accounts/login/$', login, ),
     url(r'^global/accounts/logout/$', logout, ),
     url(r'^accounts/profile/$', lambda req: http.HttpResponseRedirect('/')),
-    url(r'global/admin$' if not settings.HAS_CAS else '$^', lambda req: http.HttpResponseRedirect('/global/admin/')),
+#    url(r'global/admin$' if not settings.HAS_CAS else '^$', lambda req: http.HttpResponseRedirect('/global/admin/')),
     url(r'^global/admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^global/admin/', include(admin.site.urls)),
 
