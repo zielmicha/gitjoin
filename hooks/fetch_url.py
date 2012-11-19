@@ -9,4 +9,8 @@ if not url.startswith(('http://', 'https://')):
 print 'Fetching', (repr(url) if show_url else 'hook url') + '...',
 sys.stdout.flush()
 urllib.urlopen(url).read(1024)
-print 'done'
+code = urllib.urlopen(url).getcode()
+if code == 200:
+    print 'done'
+else:
+    print 'finished with code', code

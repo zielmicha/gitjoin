@@ -9,6 +9,7 @@ import os
 import sys
 import itertools
 import json
+import subprocess
 
 import models
 import git
@@ -52,13 +53,22 @@ def main():
 
 def run_hook(path, permission, name, args):
     repo = git.Repo(path)
+    id = int(path.split('/')[-1])
 
     if name not in supported_hooks:
         return 'unsupported hook %s' % name
 
     if name == 'update':
         ref, old, new = args
-        hook_update(repo, permission, ref, old, new)
+        hook_update(id, repo, permission, ref, old, new)
+
+    if name == 'post-receive':
+        run_user_hooks(id, repo)
+
+def run_user_hooks(id, repo):
+    for hook in models.Repo.objects.get(id=id).hooks.all():
+        if hook.enabled:
+            UserHook.get(hook.type_name).execute(hook)
 
 class UserHook:
     @staticmethod
@@ -68,7 +78,9 @@ class UserHook:
         self = UserHook()
         self.config = json.load(open(os.path.expanduser('~/hooks/%s.hook' % name)))
         self.parameters = self.config['parameters']
+        self.parameters_by_id = dict( (d['id'], d) for d in self.parameters )
         self.human_name = self.config['name']
+        self.cmd = self.config['cmd']
         self.name = name
         self.is_null = False
         return self
@@ -81,6 +93,22 @@ class UserHook:
             final['value'] = values.get(definition['id'])
             result.append(final)
         return result
+
+    def execute(self, model):
+        def get_command():
+            values = json.loads(model.parameters)
+            cmd = []
+            for part in self.cmd:
+                if part.startswith('<param:') and part.endswith('>'):
+                    name = part[len('<param:'):-1]
+                    val = values.get(name, '')
+                    type = self.parameters_by_id.get(name, {}).get('type', '')
+                    cmd.append(('true' if val else 'false') if type else val)
+                else:
+                    cmd.append(os.path.expanduser(part))
+            return cmd
+        command = get_command()
+        subprocess.call(command)
 
     @staticmethod
     def get_names():
@@ -100,10 +128,13 @@ class NullHook:
         self.name = 'null'
         self.human_name = 'This hook type has been disabled by administrator'
 
+    def execute(self, model):
+        pass
+
     def get_parameters(self, model):
         return {}
 
-def hook_update(repo, permission, ref, old, new):
+def hook_update(id, repo, permission, ref, old, new):
     print 'counting commits...',
     sys.stdout.flush()
     to_add, to_remove = get_commit_changes(repo, old, new)
