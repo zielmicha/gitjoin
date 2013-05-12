@@ -172,7 +172,7 @@ class SettingsSetupMiddleware(object):
         if not HOSTNAME:
             HOSTNAME = request.get_host()
         if not URL:
-            proto = 'https' if request.is_secure() else 'https'
+            proto = 'https' if request.is_secure() else 'http'
             URL = '%s://%s'  % (proto, HOSTNAME)
 
 if USERNAME != getpass.getuser() and not IGNORE_WRONG_USER:
