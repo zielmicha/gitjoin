@@ -6,15 +6,26 @@
 # (at your option) any later version.
 
 from gitjoin.models import User, Group
-from webapp.settings import SUPERUSERS
+from webapp.settings import CAS_SERVER_URL
 from django.contrib.auth import models as authmodels
+
+import django_cas.views
+
+def _service_url(request, redirect_to=None):
+    protocol = ('http://', 'https://')[request.is_secure()]
+    host = request.get_host()
+    service = protocol + host + request.path
+    return service
+
+django_cas.views._service_url = _service_url
 
 import pam
 import pwd
 import traceback
+import urllib
+import json
 
-class VLOBackend(object):
-
+class AtomshareCASBackend(object):
     def authenticate(self, *args, **kwargs):
         try:
             return self._authenticate(*args, **kwargs)
@@ -23,51 +34,32 @@ class VLOBackend(object):
             traceback.print_exc()
             raise
 
-    def _authenticate(self, *args, **kwargs):
-        username = self.check_auth(*args, **kwargs)
+    def _authenticate(self, ticket, service):
+        data = validate(ticket, service)
+        username = data['user_name']
+        attr = data['attributes']
+        email = attr['mail']
+        superuser = attr['is_admin'] == 'True'
+        first_name = attr['first_name']
 
-        if not username:
-            return None
-
-        username = username.strip().lower()
-
-        if username.endswith('_admin'):
-            # redirect *_admin accounts to normal accounts
-            username = username[:-len('_admin')]
-            if username not in SUPERUSERS:
-                raise Exception('You are not expected to be admin')
-
-        email = username + '@v-lo.krakow.pl'
+        last_name = attr['last_name']
 
         try:
-            user = User.objects.get(email=email)
+            user = User.objects.get(username=username)
         except User.DoesNotExist:
-            user = User(username=username, email=email)
+            user = User(username=username)
             user.name = username
-            if self.keep_django_details:
-                user.set_password(self.get_user_password(*args, **kwargs))
-            else:
-                user.set_unusable_password()
+            user.set_unusable_password()
             user.save()
 
-        if not self.keep_django_details:
-            group_name, first_name, last_name = get_name_and_group(username)
+        if (user.first_name, user.last_name, user.email) != (first_name, last_name, email):
+            user.first_name = first_name
+            user.last_name = last_name
+            user.email = email
+            user.save()
 
-            if group_name:
-                group_name = group_name.strip().replace(' ', '-').lower()
-                group, was_created = Group.objects.get_or_create(name=group_name)
-
-                if group not in user.git_groups.all():
-                    user.git_groups.add(group)
-                    user.save()
-
-            if (user.first_name, user.last_name) != (first_name, last_name):
-                user.first_name = first_name
-                user.last_name = last_name
-                user.save()
-
-        if (username in SUPERUSERS) != user.is_superuser or user.is_superuser != user.is_staff:
-            user.is_staff = user.is_superuser = (username in SUPERUSERS)
+        if superuser != user.is_superuser:
+            user.is_staff = user.is_superuser = superuser
             user.save()
 
         print 'ok, return', user
@@ -82,42 +74,11 @@ class VLOBackend(object):
 
     keep_django_details = False
 
-class PAMBackend(VLOBackend):
-    def check_auth(self, username, password):
-        if pam.authenticate(username, password):
-            return username
-
-
-class DjangoBackend(VLOBackend):
-    def check_auth(self, username, password):
-        if authmodels.User.objects.get(username=username).check_password(password):
-            return username
-
-    def get_user_password(self, username, password):
-        return password
-
-    keep_django_details = True
-
-try:
-    from django_cas.backends import _verify as cas_verify
-except ImportError:
-    pass
-
-class CASBackend(VLOBackend):
-    def check_auth(self, ticket, service):
-        return cas_verify(ticket, service)
-
-def get_name_and_group(login_name):
-    try:
-        gecos = pwd.getpwnam(login_name).pw_gecos
-    except KeyError:
-        return '', '', ''
-    name = gecos.split(',')[0].decode('utf8')
-    if gecos.count(',') >= 2:
-        group = gecos.split(',')[2].decode('utf8')
-    else:
-        group = None
-    if ' ' in name:
-        return (group,) + tuple(name.rsplit(' ', 1))
-    else:
-        return group, name, ''
+def validate(ticket, service):
+    args = urllib.urlencode({'ticket': ticket, 'service': service, 'format': 'json'})
+    url = CAS_SERVER_URL + 'serviceValidate?' + args
+    print url
+    stream = urllib.urlopen(url)
+    if stream.getcode() != 200:
+        raise Exception('request failed with %d' % stream.getcode())
+    return json.load(stream)
