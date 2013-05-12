@@ -113,7 +113,6 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'gitjoin',
     'django_evolution',
-    'django_extensions',
 )
 
 # A sample logging configuration. The only tangible logging
