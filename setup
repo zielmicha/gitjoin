@@ -58,14 +58,18 @@ if [ "$(whoami)" = root ]; then
 	chown $username $home || exit
 	su $username -c "bash $0"
 else
-	printf "Overwrite %s? (uppercase yes/no): " "$HOME"
-	read yesorno
+	if [ "$1" != "--yes" ]; then
+		printf "Overwrite %s? (uppercase yes/no): " "$HOME"
+		read yesorno
 
-	if [ "$yesorno" = YES ]; then
-		echo "Installing..."
-		installgit
+		if [ "$yesorno" = YES ]; then
+			echo "Installing..."
+			installgit
+		else
+			echo Cancel.
+			exit 1
+		fi
 	else
-		echo Cancel.
-		exit 1
+		installgit
 	fi
 fi
