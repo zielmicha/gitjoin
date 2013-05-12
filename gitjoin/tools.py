@@ -50,7 +50,7 @@ def overwrite_file(path, data, tmp_dir=os.path.expanduser('~/var/tmp/')):
     os.rename(tmp_file.name, path)
 
 def reformat_ssh_key(data):
-    split = data.split(None, 2)
+    split = data.split(' ', 2)
     if len(split) < 2:
         raise ValueError('Not enough values in SSH key.')
 
