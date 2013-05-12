@@ -144,12 +144,15 @@ LOGGING = {
     }
 }
 
+IGNORE_WRONG_USER = False
+
 execfile(os.path.expanduser('~/config.py'))
 
 HAS_CAS = 'CAS_SERVER_URL' in globals()
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
+    'webapp.settings.SettingsSetupMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -162,5 +165,15 @@ MIDDLEWARE_CLASSES = (
 
 URL = URL.rstrip('/')
 
-if USERNAME != getpass.getuser():
+class SettingsSetupMiddleware(object):
+    # if URL or HOSTNAME not set by user, use data from request
+    def process_request(self, request):
+        global HOSTNAME, URL
+        if not HOSTNAME:
+            HOSTNAME = request.get_host()
+        if not URL:
+            proto = 'https' if request.is_secure() else 'https'
+            URL = '%s://%s'  % (proto, HOSTNAME)
+
+if USERNAME != getpass.getuser() and not IGNORE_WRONG_USER:
     print 'WARNING! server run as user %s, configured to be run as %s' % (getpass.getuser(), USERNAME)
