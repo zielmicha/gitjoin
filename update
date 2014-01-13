@@ -5,112 +5,26 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
+set -e
 
 cd $(dirname $0)
+. activate.inc
 
-function check_module() {
-    python - $1 <<'EOF'
-import sys
-try:
-    __import__(sys.argv[1])
-except ImportError:
-    sys.exit(1)
-EOF
-    if [ $? = 1 ]; then
-        echo -e '\033[1;31m'
-        echo "WARNING!"
-        echo -n "Python module $1 does not exist."
-        echo -e '\033[0m'
-        echo "$2"
-        echo
-        return 1
-    fi
-}
+mkdir -p var/tmp var/locks var/cache repos
 
-function check_cmd() {
-    which $1 >/dev/null || (
-        echo -e '\033[1;31m'
-        echo "WARNING!"
-        echo "Command $1 not found."
-        echo -e '\033[0m'
-        exit 1
-    )
-}
-
-if [ `whoami` = root ]; then
-	echo Run ./update as Git user. >&2
-	exit 1
-fi
-
-if [ ! -e ~/GITJOIN_AUTOINSTALLED ]; then
-	echo ~/GITJOIN_AUTOINSTALLED does not exist - installation was not performed by ./setup >&2
-	echo Make sure that you run ./update as Git user >&2
-	exit 1
-fi
-
-if [ "$1" != no-pull -a -w .git ]; then
-    echo Pulling changes
-	git pull
-	if [ $? != 0 ]; then
-	    echo Pull failed. Run "./update no-pull" to skip git pull
-	    exit 1
-	fi
-	echo Chaining to new update script
-	exec ./update no-pull
-else
-	if [ "$1" != no-pull ]; then
-	    echo Not doing 'git pull' - not git repository or .git not writeable
-	fi
-fi
-
-check_module django "To install it:
-    easy_install django"
-
-check_module django_cas "To install it:
-    easy_install django_cas"
-
-check_module django_evolution "To install it:
-    easy_install django-evolution"
-
-check_module pretty "To install it:
-    easy_install py-pretty"
-
-check_module pygit2 "To install it:
-
-git clone https://github.com/libgit2/libgit2.git
-git checkout master
-cd libgit2
-mkdir build && cd build
-cmake ..
-cmake --build . --target install
-ln -s /usr/local/lib/libgit2.so.0 /usr/lib/libgit2.so.0
-easy_install pygit2
-
-See also: https://github.com/libgit2/libgit2#building-libgit2---using-cmake"
-
-check_cmd realpath
-
-export DJANGO_SETTINGS_MODULE=webapp.settings
-
-if [ ! -e ~/hooks ]; then
-    mkdir ~/hooks
-fi
-cp -a gitjoin/ webapp/ *.py enabled_hooks.example ~ || exit 1
-cp hooks/* ~/hooks/ || exit 1
 echo Syncing DB...
-~/manage.py syncdb --noinput
-~/manage.py evolve --noinput --hint -x || exit 1
+./manage.py syncdb --noinput
+./manage.py evolve --noinput --hint -x
+
 echo Collecting static files...
-~/manage.py collectstatic --noinput >/dev/null || exit 1
+./manage.py collectstatic --noinput >/dev/null
 #echo Clearing cache...
 #rm -r ~/var/cache/*
-echo Regenerating authorized keys...
-python -m gitjoin.authorized_keys || exit 1
-echo Regenerating hooks...
-python -m gitjoin.hooks regen || exit 1
-echo Setting ACL and reloading...
-setfacl -R -m u:apache:rx ~/var/static 2>/dev/null || echo "Updating linux ACL failed - do not care if you don't use it."
-touch ~/wsgi.py
 
+echo Regenerating authorized keys...
+python -m gitjoin.authorized_keys
+
+echo Regenerating hooks...
+python -m gitjoin.hooks regen
 
 echo Updated.
