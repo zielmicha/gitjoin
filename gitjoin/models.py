@@ -169,6 +169,25 @@ class User(PrivilegeOwner, RepoHolder, DjangoUser):
         verbose_name = "user"
         verbose_name_plural = "users"
 
+    @classmethod
+    def get_for_django_user(cls, django_user):
+        try:
+            django_user = django_user._wrapped
+        except AttributeError:
+            pass
+        try:
+            new_user = User.objects.get(user_ptr_id=django_user.pk)
+        except User.DoesNotExist:
+            new_user = User(user_ptr_id=django_user.pk)
+            print django_user.__dict__
+            new_user.__dict__.update(django_user.__dict__)
+            new_user.name = new_user.username
+            new_user.save()
+
+        new_user.is_superuser = new_user.name in settings.SUPERUSERS
+
+        return new_user
+
     # fix django_cas
     class FakeMessageSet:
         def create(self, message): pass

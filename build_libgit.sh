@@ -1,5 +1,7 @@
 #!/bin/sh
 set -e
+git submodule init
+git submodule update
 . virtualenv/bin/activate
 mkdir -p build
 cd build
