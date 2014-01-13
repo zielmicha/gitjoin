@@ -1,0 +1,5 @@
+Twisted==13.2.0
+py-pretty==1
+pyasn1==0.1.7
+pycrypto==2.6.1
+zope.interface==4.0.5
