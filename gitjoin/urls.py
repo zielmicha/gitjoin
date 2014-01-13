@@ -25,6 +25,7 @@ urlpatterns = patterns('',
 #    url(r'global/admin$' if not settings.HAS_CAS else '^$', lambda req: http.HttpResponseRedirect('/global/admin/')),
     url(r'^global/admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^global/admin/', include(admin.site.urls)),
+    url(r'^grappelli/', include('grappelli.urls')),
 
     url('^$', views.home, name='home'),
     url(r'^global/org/new$', views.org_new, name='org_new'),

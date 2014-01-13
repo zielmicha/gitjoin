@@ -9,6 +9,7 @@ from django.core import exceptions
 from django.db import models
 from django.contrib import admin
 from django.contrib.auth.models import User as DjangoUser
+from django.contrib import admin
 from django.db.models import Q
 from itertools import chain
 from webapp import settings
@@ -118,6 +119,11 @@ class Repo(models.Model):
     def __unicode__(self):
         return u'Repo: %s/%s' % (self.holder.name, self.name)
 
+class RepoAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'public', 'holder')
+
+admin.site.register(Repo, RepoAdmin)
+
 class RepoAlias(models.Model):
     repo = models.ForeignKey(Repo)
     name = models.CharField(max_length=50, unique=True)
@@ -198,6 +204,11 @@ class User(PrivilegeOwner, RepoHolder, DjangoUser):
 
     # end fix django_cas
 
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('name', 'is_superuser')
+
+admin.site.register(User, UserAdmin)
+
 class Group(PrivilegeOwner):
     name = models.CharField(max_length=50)
     members = models.ManyToManyField(User, related_name='git_groups', blank=True)
@@ -221,6 +232,11 @@ class Group(PrivilegeOwner):
     def __unicode__(self):
         return u'Group: %s' % self.get_ident_name()[1:]
 
+class GroupAdmin(admin.ModelAdmin):
+    list_display = ('name', 'organization')
+
+admin.site.register(Group, GroupAdmin)
+
 class Organization(RepoHolder):
     owners = models.ManyToManyField(User, related_name='organizations')
 
@@ -234,6 +250,11 @@ class Organization(RepoHolder):
     def check_if_owner(self, user):
         if not self.is_owner(user):
             raise exceptions.PermissionDenied
+
+class OrganizationAdmin(admin.ModelAdmin):
+    list_display = ('name', )
+
+admin.site.register(Organization, OrganizationAdmin)
 
 class SSHKey(models.Model):
     owner = models.ForeignKey(User, blank=True, null=True)
@@ -267,12 +288,8 @@ class Hook(models.Model):
     type_name = models.CharField(max_length=50)
     parameters = models.TextField() # json encoded
 
-admin.site.register(Repo)
 admin.site.register(RepoAlias)
-admin.site.register(User)
 admin.site.register(PrivilegeOwner)
 admin.site.register(SSHKey)
-admin.site.register(Organization)
-admin.site.register(Group)
 admin.site.register(LiveData)
 admin.site.register(Hook)
