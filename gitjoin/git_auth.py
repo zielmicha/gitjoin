@@ -85,7 +85,12 @@ def gitauth(repo_name, auth, access):
         if errors:
             raise PermissionDenied(', '.join(errors))
         else:
-            raise PermissionDenied('no keys found (looks like .authorized_keys is out of sync with DB)')
+            if os.environ.get('CALLED_WITH_CUSTOM_SSHD'):
+                raise PermissionDenied('key you authorized with is not authorized for any repos'
+                                       + ' (id: %s)' % auth)
+            else:
+                raise PermissionDenied(
+                    'no keys found (looks like .authorized_keys is out of sync with DB)')
 
     return repo.id, permission, user
 

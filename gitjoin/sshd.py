@@ -17,10 +17,13 @@ from twisted.python import components
 from twisted.conch.ssh import session
 from twisted.cred import portal
 from twisted.internet import reactor
+from twisted.internet.error import ProcessExitedAlready
 from zope.interface import implements, providedBy
 
 import os
 import pwd
+import sys
+import subprocess
 
 from . import tools
 
@@ -41,24 +44,64 @@ class KeySession:
 
     def __init__(self, avatar):
         self.avatar = avatar
+        self.proc = None
 
     def execCommand(self, proto, cmd):
         username, key_id = self.avatar.avatarId
-        uid = settings.username_get(username)
         environ = {}
-        home = pwd.getpwuid(uid).pw_dir
+
+        # Are we supposed to setuid?
+        if settings.username_get:
+            uid = settings.username_get(username)
+
+            home = pwd.getpwuid(uid).pw_dir
+            environ['PYTHONPATH'] = os.environ['PYTHONPATH']
+            environ['HOME'] = home
+            environ['PATH'] = os.environ['PATH']
+
+            setuid_args = [uid, settings.gid]
+        else:
+            environ.update(os.environ)
+            home = os.path.abspath(os.path.dirname(sys.argv[0]) + '/..')
+
+            setuid_args = []
+
         environ['SSH_ORIGINAL_COMMAND'] = cmd
-        environ['PYTHONPATH'] = os.environ['PYTHONPATH']
-        environ['HOME'] = home
-        environ['PATH'] = os.environ['PATH']
+        environ['CALLED_WITH_CUSTOM_SSHD'] = '1'
+
         assert "'" not in key_id # generate by get_ssh_key_fingerprint, so it's safe
-        self.pty = reactor.spawnProcess(proto,
+        self.proc = reactor.spawnProcess(ProcessExitWorkaroundWrapper(proto),
                                         '/bin/sh', ['sh', '-c', "python -m gitjoin.git_auth '%s'" % key_id], environ, home,
-                                        uid, settings.gid)
+                                        *setuid_args)
         self.avatar.conn.transport.transport.setTcpNoDelay(1)
 
+    def eofReceived(self):
+        if self.proc:
+            self.proc.closeStdin()
+
     def closed(self):
-        pass
+        try:
+            self.proc.signalProcess('HUP')
+        except (OSError, ProcessExitedAlready):
+            pass
+        self.proc.loseConnection()
+
+class ProcessExitWorkaroundWrapper(object):
+    '''
+    Process seems to call processExited long before processEnded.
+    However SSHSessionProcessProtocol closes channel on processEnded.
+    '''
+    def __init__(self, obj):
+        self._obj = obj
+
+    def __getattr__(self, name):
+        return getattr(self._obj, name)
+
+    def processExited(self, reason=None):
+        return self.processEnded(reason)
+
+    def childDataReceived(self, a, data):
+        return self._obj.childDataReceived(a, data)
 
 components.registerAdapter(KeySession, KeyConchUser, session.ISession)
 
@@ -79,15 +122,20 @@ class KeyChecker(object):
         id = tools.get_ssh_key_fingerprint(pubkey)
         return (credentials.username, id)
 
-def main(keys_path, username_get, gid, port=2022):
+def main(keys_path, username_get=None, gid=None, port=2022):
     settings.username_get = username_get
     settings.gid = gid
+    key_path = keys_path + '/id_rsa'
 
-    with open(keys_path + '/id_rsa') as privateBlobFile:
+    if not os.path.exists(key_path):
+        subprocess.check_call(['ssh-keygen', '-f', key_path,
+                               '-t', 'rsa', '-N', ''])
+
+    with open(key_path) as privateBlobFile:
         privateBlob = privateBlobFile.read()
         privateKey = Key.fromString(data=privateBlob)
 
-    with open(keys_path + '/id_rsa.pub') as publicBlobFile:
+    with open(key_path + '.pub') as publicBlobFile:
         publicBlob = publicBlobFile.read()
         publicKey = Key.fromString(data=publicBlob)
 
@@ -101,4 +149,4 @@ def main(keys_path, username_get, gid, port=2022):
     reactor.run()
 
 if __name__ == '__main__':
-    main('.', lambda name: 1002, 100)
+    main('.')

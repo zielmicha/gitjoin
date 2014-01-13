@@ -13,12 +13,14 @@ from gitjoin import models
 
 def create():
     out = StringIO.StringIO()
+    write_file = True
 
     try:
         custom = open(os.path.expanduser('~/authorized_keys.custom')).read()
     except IOError:
         print '~/authorized_keys.custom not found - not updating SSH keys'
-        return
+        write_file = False
+        custom = ''
 
     out.write('# ~/authorized_keys.custom\n')
     out.write(custom)
@@ -37,7 +39,8 @@ def create():
 
         out.write('command="%s %s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty %s\n' % (auth_cmd, fingerprint, keydata))
 
-    tools.overwrite_file(os.path.expanduser('~/.ssh/authorized_keys'), out.getvalue())
+    if write_file:
+        tools.overwrite_file(os.path.expanduser('~/.ssh/authorized_keys'), out.getvalue())
 
 if __name__ == '__main__':
     create()

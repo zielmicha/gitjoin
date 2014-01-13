@@ -26,3 +26,5 @@
 /build
 /virtualenv
 /git.db
+/id_rsa
+/id_rsa.pub
