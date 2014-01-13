@@ -23,3 +23,5 @@
 /apps
 /auth.pub
 /.idea
+/build
+/virtualenv
