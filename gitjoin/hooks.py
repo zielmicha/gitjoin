@@ -20,10 +20,11 @@ from webapp import settings
 supported_hooks = ['update', 'post-receive']
 
 hook_script = '''#!/bin/bash
-export GIT_DIR=$(realpath $GIT_DIR)
+cd "$GIT_DIR"
+export GIT_DIR="$PWD"
 export DJANGO_SETTINGS_MODULE=webapp.settings
 cd %s
-python -m gitjoin.hooks run %%s $*
+python -m gitjoin.hooks run %%s "$@"
 ''' % pipes.quote(settings.APP_ROOT)
 
 def regenerate_all_hooks():
