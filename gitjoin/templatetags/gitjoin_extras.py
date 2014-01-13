@@ -12,6 +12,7 @@ from django.utils.html import conditional_escape
 
 from gitjoin import models
 
+import datetime
 import pretty
 
 register = template.Library()
@@ -45,7 +46,7 @@ def usernames(repo, field=None):
 
 @register.filter
 def prettydate(time):
-    return pretty.date(time)
+    return pretty.date(datetime.datetime.fromtimestamp(time))
 
 @register.filter
 def shortcommitmsg(message):

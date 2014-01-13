@@ -38,19 +38,15 @@ class Repo(object):
 
     def get_ref(self, name):
         obj = self.repo.lookup_reference(name)
-        return Commit(self.repo, obj.resolve())
+        return Commit(self.repo, obj.resolve().target)
 
     def get_commit(self, ident):
-        try:
-            ident = ident.decode('hex')
-        except (ValueError, TypeError) as err:
-            raise KeyError(err)
         return Commit(self.repo, self.repo[ident])
 
     def get_branch(self, name):
         try:
             return self.get_commit(name)
-        except KeyError:
+        except (KeyError, ValueError):
             return self.get_ref('refs/heads/' + name)
 
     def get_head(self):
@@ -69,9 +65,9 @@ class Repo(object):
         os.chmod(path, 0o755)
 
 class Commit(object):
-    def __init__(self, repo, ref):
+    def __init__(self, repo, oid):
         self.repo = repo
-        self.obj = self.repo[ref.oid]
+        self.obj = self.repo[oid]
 
     def list(self, path, **kwargs):
         return self.get_tree(path).list(**kwargs)
@@ -106,7 +102,7 @@ class Commit(object):
     @tools.reusable_generator
     def list_commits(self):
         for obj in self.repo.walk(self.obj.oid, pygit2.GIT_SORT_TOPOLOGICAL):
-            yield Commit(self.repo, obj)
+            yield Commit(self.repo, obj.oid)
 
     def diff_with_prev(self, raw=False, file=None):
         if self.parents:
