@@ -1,5 +1,7 @@
 Django==1.4.5
 argparse==1.2.1
 django-evolution==0.6.9
+django-grappelli==2.4.8
+py-pretty==1
 pygit2==0.20.1
 wsgiref==0.1.2
