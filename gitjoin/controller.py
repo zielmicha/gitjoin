@@ -14,6 +14,7 @@ import re
 import json
 
 from django.db import IntegrityError
+from webapp import settings
 
 RESERVED_GLOBAL_NAMES = 'global', 'settings'
 
@@ -51,7 +52,7 @@ def create_repo(user, holder_name, name):
     init_repo(repo)
 
 def init_repo(repo):
-    path = os.path.expanduser('~/repos/%d' % repo.id)
+    path = settings.REPOS_PATH + ('/%d' % repo.id)
     git.init(path)
     repo = git.Repo(path)
     hooks.regenerate_hooks(repo)

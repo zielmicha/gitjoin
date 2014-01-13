@@ -18,6 +18,7 @@ import subprocess
 os.environ['DJANGO_SETTINGS_MODULE'] = 'webapp.settings'
 
 from gitjoin import models, live
+from webapp import settings
 
 import tools
 
@@ -41,7 +42,7 @@ def invoke_command(auth_obj, cmd, args):
     except PermissionDenied as err:
         sys.exit('Cannot access repository %s: %s' % (repo_name, err.message))
 
-    path = os.path.expanduser('~/repos/%d' % repo_id)
+    path = settings.REPOS_PATH + ('/%d' % repo_id)
     if cmd == 'gitjoin-live':
         live.main(repo_id, path, user)
     else:

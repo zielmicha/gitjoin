@@ -17,10 +17,12 @@ import time
 import atexit
 import hashlib
 
+from webapp import settings
+
 class lock(object):
     ' exclusive by default '
     def __init__(self, name, shared=False):
-        self.path = os.path.expanduser('~/var/locks/' + quote_path(name))
+        self.path = settings.VAR_PATH + '/locks/' + quote_path(name)
         self.shared = shared
         self.fd = open(self.path, 'w+')
 
@@ -39,10 +41,10 @@ def quote_path(s):
 
 def get_conf(name):
     config = {}
-    execfile(os.path.expanduser('~/config.py'), config)
+    execfile(settings.APP_ROOT + '/config.py', config)
     return config[name]
 
-def overwrite_file(path, data, tmp_dir=os.path.expanduser('~/var/tmp/')):
+def overwrite_file(path, data, tmp_dir=settings.VAR_PATH + '/tmp/'):
     ' Atomic overwrite using os.rename (which is guaranteed to be atomic) '
     tmp_file = tempfile.NamedTemporaryFile(dir=tmp_dir, prefix='overwrite_', delete=False)
     tmp_file.write(data)
@@ -151,7 +153,7 @@ class KyotoCache:
         if self.db:
             self.db.close()
 
-global_cache = FSCache(os.path.expanduser('~/var/cache'))
+global_cache = FSCache(settings.VAR_PATH + '/cache')
 
 def cached(key, cache=global_cache, funcid=None):
     def dec_apply(func):

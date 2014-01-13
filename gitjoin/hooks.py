@@ -10,18 +10,21 @@ import sys
 import itertools
 import json
 import subprocess
+import pipes
 
-import models
-import git
+from gitjoin import models
+from gitjoin import git
+
+from webapp import settings
 
 supported_hooks = ['update', 'post-receive']
 
 hook_script = '''#!/bin/bash
 export GIT_DIR=$(realpath $GIT_DIR)
 export DJANGO_SETTINGS_MODULE=webapp.settings
-cd
+cd %s
 python -m gitjoin.hooks run %s $*
-'''
+''' % pipes.quote(settings.APP_ROOT)
 
 def regenerate_all_hooks():
     for repo in models.Repo.objects.all():
@@ -76,7 +79,7 @@ class UserHook:
         if not _safe and name not in UserHook.get_names():
             return NullHook()
         self = UserHook()
-        self.config = json.load(open(os.path.expanduser('~/hooks/%s.hook' % name)))
+        self.config = json.load(open(settings.HOOKS_PATH + '/%s.hook' % name))
         self.parameters = self.config['parameters']
         self.parameters_by_id = dict( (d['id'], d) for d in self.parameters )
         self.human_name = self.config['name']
@@ -113,7 +116,7 @@ class UserHook:
     @staticmethod
     def get_names():
         try:
-            hooks = json.load(open(os.path.expanduser('~/enabled_hooks')))
+            hooks = json.load(open(APP_ROOT + '/enabled_hooks'))
             return hooks['allowed']
         except IOError:
             return []

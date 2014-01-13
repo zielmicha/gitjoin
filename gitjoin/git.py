@@ -9,7 +9,8 @@ import pygit2
 import os
 import tools
 import collections
-from mysubprocess import check_output
+from gitjoin.mysubprocess import check_output
+from webapp import settings
 
 Entry = collections.namedtuple('Entry', 'path name type last_commit')
 DiffEntry = collections.namedtuple('DiffEntry', 'action path old_mode new_mode')
@@ -24,7 +25,7 @@ class Repo(object):
 
     @staticmethod
     def from_model(model):
-        return Repo(os.path.expanduser('~/repos/%d' % model.id))
+        return Repo(settings.REPOS_PATH + ('/%d' % model.id))
 
     def list(self, path='', **kwargs):
         return self.get_head().list(path, **kwargs)

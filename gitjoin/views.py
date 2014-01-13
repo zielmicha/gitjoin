@@ -12,6 +12,7 @@ from django.views.generic.simple import direct_to_template
 from django.core.urlresolvers import reverse
 import django.core.exceptions
 import webapp.settings
+from webapp import settings
 from gitjoin import models
 from gitjoin import controller
 from gitjoin import git
@@ -220,7 +221,7 @@ def live_main(request, username, repo_name, live_user):
 
 def get_live(repo, username):
     user = models.User.objects.get(name=username)
-    return live.LiveServer(repo.id, os.path.expanduser('~/repos/%d' % repo.id), user)
+    return live.LiveServer(repo.id, settings.REPOS_PATH + ('/%d' % repo.id), user)
 
 @csrf_exempt
 def repo_git_http(request, username, repo_name, path):

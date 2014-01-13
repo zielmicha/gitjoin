@@ -7,6 +7,7 @@
 # (at your option) any later version.
 
 from gitjoin import git, tools, models
+from webapp import settings
 import sys
 import json
 import hashlib
@@ -95,7 +96,7 @@ class LiveServer(object):
 def create_storage(repo_id, user):
     models.LiveData.objects.get_or_create(repo=models.Repo.objects.get(id=repo_id),
                                           user=user)
-    path = os.path.expanduser('~/var/live/%d_%d' % (repo_id, user.id))
+    path = settings.VAR_PATH + ('/live/%d_%d' % (repo_id, user.id))
     if not os.path.isdir(path):
         os.makedirs(path)
     return tools.FSCache(path)

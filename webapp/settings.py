@@ -17,7 +17,7 @@ APP_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '/home/git/db.sqlite',                      # Or path to database file if using sqlite3.
+        'NAME': APP_ROOT + '/db.sqlite', # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -145,8 +145,11 @@ LOGGING = {
 }
 
 IGNORE_WRONG_USER = False
+VAR_PATH = APP_ROOT + '/var'
+REPOS_PATH = APP_ROOT + '/repos'
+HOOKS_PATH = APP_ROOT + '/hooks'
 
-execfile(os.path.expanduser('~/config.py'))
+execfile(APP_ROOT + '/config.py')
 
 HAS_CAS = 'CAS_SERVER_URL' in globals()
 
