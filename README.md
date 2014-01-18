@@ -28,17 +28,23 @@ You can visit administrator interface at [http://localhost:7000/global/admin/]
 
 For deployment, uwsgi is recommended:
     
-    . activate.sh
+    source activate.inc
     pip install uwsgi
     hash -r 
     uwsgi uwsgi.ini
     
 And use your favourite reverse-proxy to forward requests to http://localhost:8080
 
-## Using PostgreSQL instead of SQlite
+### Enabling SSH Git transport
+
+    mv ~/.ssh/authorized_keys ~/authorized_keys.custom
+    source activate.inc
+    python -m gitjoin.authorized_keys
+
+### Using PostgreSQL instead of SQlite
 
 If you want to host a site with a bit bigger traffic edit `config.py` to point to
 your PostgreSQL database and install PostgreSQL adapter:
 
-    . activate.sh
+    source activate.inc
     pip install psycopg2
