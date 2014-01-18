@@ -97,7 +97,7 @@ class Commit(object):
 
     @property
     def parents(self):
-        return [ Commit(self.repo, parent) for parent in self.obj.parents ]
+        return [ Commit(self.repo, parent.oid) for parent in self.obj.parents ]
 
     @tools.reusable_generator
     def list_commits(self):
@@ -174,7 +174,7 @@ class Object(object):
 
     @tools.reusable_generator
     def list(self, include_commit_info=False):
-        if include_commit_info:
+        if include_commit_info and False:
             commit_info = self.commit.get_files_commit_from_dir(self.path)
             print commit_info
         else:
@@ -185,7 +185,7 @@ class Object(object):
             type = 'dir' if isinstance(entry, pygit2.Tree) else 'file'
             last_commit = commit_info.get(obj.name)
             yield Entry(name=obj.name, path=self.path + (self.path and '/') + obj.name, type=type,
-                last_commit=Commit(self.repo, self.repo[last_commit.decode('hex')]) if last_commit else None)
+                last_commit=Commit(self.repo, self.repo[last_commit.oid]) if last_commit else None)
 
     @tools.reusable_generator
     def list_recursive(self):
