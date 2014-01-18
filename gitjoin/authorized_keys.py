@@ -8,8 +8,10 @@
 import tools
 import os
 import StringIO
+import pipes
 
 from gitjoin import models
+from webapp import settings
 
 def create():
     out = StringIO.StringIO()
@@ -37,7 +39,9 @@ def create():
             fingerprint = key.fingerprint = tools.get_ssh_key_fingerprint(key.data)
             key.save()
 
-        out.write('command="%s %s",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty %s\n' % (auth_cmd, fingerprint, keydata))
+        out.write(('command="cd %s && source activate.inc && %s %s",'
+                   'no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty %s\n')
+                  % (pipes.quote(settings.APP_ROOT), auth_cmd, fingerprint, keydata))
 
     if write_file:
         tools.overwrite_file(os.path.expanduser('~/.ssh/authorized_keys'), out.getvalue())
