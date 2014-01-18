@@ -34,3 +34,11 @@ For deployment, uwsgi is recommended:
     uwsgi uwsgi.ini
     
 And use your favourite reverse-proxy to forward requests to http://localhost:8080
+
+## Using PostgreSQL instead of SQlite
+
+If you want to host a site with a bit bigger traffic edit `config.py` to point to
+your PostgreSQL database and install PostgreSQL adapter:
+
+    . activate.sh
+    pip install psycopg2
