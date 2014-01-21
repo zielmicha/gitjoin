@@ -5,17 +5,25 @@
 Install requirements:
 
     # For example on Debian/Ubuntu:
-    apt-get install build-essential git python2.7-dev python-virtualenv
+    apt-get install build-essential git python2.7-dev python-virtualenv cmake
 
 Generate and edit configuration file.
 
     ./genconf.sh > config.py
     nano config.py
-    
+
+If you decide to use Postgres, install adapter:
+
+    source activate.inc
+    pip install uwsgi
+
 `./update` will install dependencies, build libgit2 and create DB tables:
 
     ./update
-    
+
+If anything fails (for example you forgot to install dependencies), `rm virtualenv`
+and try again.
+
 Create first user:
 
     ./manage.sh createsuperuser
@@ -24,7 +32,7 @@ Run test server
 
     ./manage.sh runserver 7000
 
-You can visit administrator interface at [http://localhost:7000/global/admin/]
+You can visit administrator interface at http://localhost:7000/global/admin/
 
 For deployment, uwsgi is recommended:
     
