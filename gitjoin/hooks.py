@@ -64,7 +64,8 @@ def run_hook(path, permission, name, args):
 
     if name == 'update':
         ref, old, new = args
-        hook_update(id, repo, permission, ref, old, new)
+        # don't use, for now
+        #hook_update(id, repo, permission, ref, old, new)
 
     if name == 'post-receive':
         run_user_hooks(id, repo)
