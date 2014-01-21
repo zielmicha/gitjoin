@@ -39,7 +39,7 @@ def create():
             fingerprint = key.fingerprint = tools.get_ssh_key_fingerprint(key.data)
             key.save()
 
-        out.write(('command="cd %s && source activate.inc && %s %s",'
+        out.write(('command="cd %s && source activate_base.inc && %s %s",'
                    'no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty %s\n')
                   % (pipes.quote(settings.APP_ROOT), auth_cmd, fingerprint, keydata))
 
