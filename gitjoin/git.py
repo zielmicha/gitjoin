@@ -41,7 +41,7 @@ class Repo(object):
         return Commit(self.repo, obj.resolve().target)
 
     def get_commit(self, ident):
-        return Commit(self.repo, self.repo[ident])
+        return Commit(self.repo, ident)
 
     def get_branch(self, name):
         try:

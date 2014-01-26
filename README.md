@@ -27,7 +27,7 @@ and try again.
 Create first user:
 
     ./manage.sh createsuperuser
-    
+
 Run test server
 
     ./manage.sh runserver 7000
@@ -35,12 +35,12 @@ Run test server
 You can visit administrator interface at http://localhost:7000/global/admin/
 
 For deployment, uwsgi is recommended:
-    
+
     source activate.inc
     pip install uwsgi
-    hash -r 
-    uwsgi uwsgi.ini
-    
+    hash -r
+    uwsgi --deamonize=var/git.log uwsgi.ini
+
 And use your favourite reverse-proxy to forward requests to http://localhost:8080
 
 ### Enabling SSH Git transport
@@ -48,6 +48,14 @@ And use your favourite reverse-proxy to forward requests to http://localhost:808
     mv ~/.ssh/authorized_keys ~/authorized_keys.custom
     source activate.inc
     python -m gitjoin.authorized_keys
+
+### Using built-in SSH server
+
+Gitjoin may also run separate SSH server on port 2022 if you prefer not exposing OpenSSH:
+
+    source activate.inc
+    pip install -r requirements_sshd.txt
+    python -m gitjoin.sshd
 
 ### Using PostgreSQL instead of SQlite
 
