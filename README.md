@@ -12,11 +12,6 @@ Generate and edit configuration file.
     ./genconf.sh > config.py
     nano config.py
 
-If you decide to use Postgres, install adapter:
-
-    source activate.inc
-    pip install uwsgi
-
 `./update` will install dependencies, build libgit2 and create DB tables:
 
     ./update
