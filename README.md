@@ -40,6 +40,10 @@ And use your favourite reverse-proxy to forward requests to http://localhost:808
 
 ### Enabling SSH Git transport
 
+Gitjoin only overrides OpenSSH authorized_keys if `authorized_keys.custom` file
+exists in your home directory. It will append its content to generated keys.
+
+    touch ~/.ssh/authorized_keys
     mv ~/.ssh/authorized_keys ~/authorized_keys.custom
     source activate.inc
     python -m gitjoin.authorized_keys
