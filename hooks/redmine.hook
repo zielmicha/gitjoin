@@ -3,5 +3,5 @@
                {"id": "hostname", "name": "Hostname", "help": "Redmine host name"},
                {"id": "projectid", "name": "Project ID", "help": "Redmine project ID"},
                {"id": "key", "name": "API key", "help": "API key (http://www.redmine.org/projects/redmine/wiki/Rest_api#Authentication)"}],
- "cmd": ["python", "~/hooks/redmine.py", "<param:hostname>", "<param:key>",  "<param:projectid>"]
+ "cmd": ["python", "<hooks>/redmine.py", "<param:hostname>", "<param:key>",  "<param:projectid>"]
 }

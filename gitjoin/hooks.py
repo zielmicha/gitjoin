@@ -104,7 +104,10 @@ class UserHook:
             values = json.loads(model.parameters)
             cmd = []
             for part in self.cmd:
-                if part.startswith('<param:') and part.endswith('>'):
+                if part.startswith('<hooks>/'):
+                    part = settings.HOOKS_PATH + '/' + part.split('/', 1)[1]
+                    cmd.append(part)
+                elif part.startswith('<param:') and part.endswith('>'):
                     name = part[len('<param:'):-1]
                     val = values.get(name, '')
                     type = self.parameters_by_id.get(name, {}).get('type', '')
@@ -118,7 +121,7 @@ class UserHook:
     @staticmethod
     def get_names():
         try:
-            hooks = json.load(open(APP_ROOT + '/enabled_hooks'))
+            hooks = json.load(open(settings.APP_ROOT + '/enabled_hooks'))
             return hooks['allowed']
         except IOError:
             return []

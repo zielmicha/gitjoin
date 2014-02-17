@@ -2,5 +2,5 @@
  "parameters": [
                {"id": "url", "name": "URL", "help": "This URL will be fetched with GET."},
                {"id": "hide", "name": "Hide URL", "type": "bool"}],
- "cmd": ["python", "~/hooks/fetch_url.py", "<param:url>", "<param:hide>"]
+ "cmd": ["python", "<hooks>/fetch_url.py", "<param:url>", "<param:hide>"]
 }

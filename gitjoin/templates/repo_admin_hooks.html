@@ -81,6 +81,9 @@
 {% else %}
 <h3>Hooks are disabled</h3>
 Git hooks are executed in gitjoin user context. To prevent abuse they are disabled by default.
+<hr>
+Note for administrator: to enable hooks rename <code>enabled_hooks.example</code> to <code>enabled_hooks</code> in Gitjoin root directory.
+
 {% endif %}
 
 {% endblock %}
