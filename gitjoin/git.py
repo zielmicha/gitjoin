@@ -181,8 +181,12 @@ class Object(object):
             commit_info = {}
         for obj in self.obj:
             value = self.obj[obj.name]
-            entry = self.repo[value.oid]
-            type = 'dir' if isinstance(entry, pygit2.Tree) else 'file'
+            try:
+                entry = self.repo[value.oid]
+            except KeyError: # this may be a submodule
+                type = 'submodule'
+            else:
+                type = 'dir' if isinstance(entry, pygit2.Tree) else 'file'
             last_commit = commit_info.get(obj.name)
             yield Entry(name=obj.name, path=self.path + (self.path and '/') + obj.name, type=type,
                 last_commit=Commit(self.repo, self.repo[last_commit.oid]) if last_commit else None)
