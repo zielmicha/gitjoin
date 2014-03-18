@@ -33,10 +33,11 @@ def create():
     for key in models.SSHKey.objects.all():
         keydata = tools.reformat_ssh_key(key.data)
         fingerprint = key.fingerprint
+        correct_fingerprint = tools.get_ssh_key_fingerprint(key.data)
 
-        if not fingerprint:
-            # fill in missing data
-            fingerprint = key.fingerprint = tools.get_ssh_key_fingerprint(key.data)
+        if fingerprint != correct_fingerprint:
+            # fill in missing/incorrect data
+            fingerprint = key.fingerprint = correct_fingerprint
             key.save()
 
         out.write(('command="cd %s && source activate_base.inc && %s %s",'

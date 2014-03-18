@@ -71,7 +71,7 @@ def reformat_ssh_key(data):
 
 def get_ssh_key_fingerprint(data):
     ' Assumes well-formed SSH key '
-    key = data.split(None, 2)[1]
+    key = data.split(None, 2)[1].decode('base64')
     fp_plain = hashlib.md5(key).hexdigest()
     return ':'.join( a + b for a,b in zip(fp_plain[::2], fp_plain[1::2]) )
 
@@ -89,7 +89,7 @@ def none_on_error(func, errors=None, none_value=None, *args, **kwargs):
         if errors:
             if not isinstance(err, tuple(errors)):
                 raise
-        return None
+        return none_value
 
 class FSCache:
     def __init__(self, path):
