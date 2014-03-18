@@ -22,7 +22,7 @@ class Error(Exception):
     pass
 
 def check_ident(ident):
-    if not re.match('^[a-zA-Z0-9_-]+$', ident):
+    if not re.match('^[a-zA-Z0-9_.-]+$', ident):
         raise Error('wrong identifier %s' % ident)
 
 def create_repo(user, holder_name, name):
