@@ -1,5 +1,5 @@
 # Gitjoin Git Management
-# Copyright (C) 2012 Michal Zielinski
+# Copyright (C) 2014 Michal Zielinski
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -37,6 +37,12 @@ def user(request, name):
     except django.core.exceptions.ObjectDoesNotExist:
         raise http.Http404
     repos = holder.repos.all()
+
+    if not request.user.is_authenticated():
+        # If not logged show only public repos
+        repos = [ repo for repo in repos
+                  if repo.public ]
+
     owners = holder.owners.all() if isinstance(holder, models.Organization) else None
     is_owner = (request.user in owners) if owners else holder == request.user
     groups = holder.group_set.all() if isinstance(holder, models.Organization) else None
